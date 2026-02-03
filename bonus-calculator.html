@@ -1012,107 +1012,238 @@
             const monthName = hebrewMonths[(settings.currentMonth || 1) - 1];
             const results = window.calculationResults;
 
+            // Calculate totals by store
+            const storeStats = {};
+            stores.forEach(s => {
+                storeStats[s.id] = { revenue: s.currentSales, target: s.financialTarget, bonuses: 0, empCount: 0 };
+            });
+            results.forEach(r => {
+                if (r.employee.storeId && storeStats[r.employee.storeId]) {
+                    storeStats[r.employee.storeId].bonuses += r.total;
+                    storeStats[r.employee.storeId].empCount++;
+                }
+            });
+
             let html = `
 <!DOCTYPE html>
 <html dir="rtl">
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
-        h1 { color: #667eea; text-align: center; }
-        h2 { color: #333; border-bottom: 2px solid #667eea; padding-bottom: 5px; margin-top: 30px; }
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th { background: #667eea; color: white; padding: 12px; text-align: right; }
-        td { padding: 10px; border: 1px solid #ddd; }
-        tr:nth-child(even) { background: #f8f9ff; }
-        .total-row { background: #11998e !important; color: white; font-weight: bold; }
-        .amount { color: #11998e; font-weight: bold; }
-        .summary-box { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; }
-        .summary-total { font-size: 2em; font-weight: bold; }
-        .store-section { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 10px 0; }
-        .progress-bar { background: #ddd; border-radius: 10px; height: 20px; overflow: hidden; }
-        .progress-fill { height: 100%; border-radius: 10px; }
-        .progress-good { background: #11998e; }
-        .progress-warning { background: #f0ad4e; }
-        .progress-bad { background: #eb3349; }
+        @page { size: A4 landscape; margin: 1cm; }
+        body { font-family: Arial, Helvetica, sans-serif; direction: rtl; margin: 0; padding: 15px; background: #f5f5f5; }
+
+        .page { background: white; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .page-title { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px; margin: -25px -25px 20px -25px; font-size: 22px; font-weight: bold; }
+
+        .summary-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .summary-card { flex: 1; padding: 15px; border-radius: 10px; text-align: center; color: white; }
+        .summary-card.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .summary-card.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .summary-card.orange { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .summary-card .label { font-size: 12px; opacity: 0.9; }
+        .summary-card .value { font-size: 24px; font-weight: bold; margin-top: 5px; }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 13px; }
+        th { background: #667eea; color: white; padding: 10px 8px; text-align: center; border: 2px solid #5a6fd6; font-weight: bold; }
+        td { padding: 8px; text-align: center; border: 1px solid #ddd; }
+
+        .table-stores th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .table-stores td:first-child { background: #f0f0ff; font-weight: bold; text-align: right; }
+        .table-stores tr:nth-child(even) td { background: #fafbff; }
+        .table-stores tr:nth-child(even) td:first-child { background: #e8e8ff; }
+
+        .table-bonuses th { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-color: #0d8377; }
+        .table-bonuses td:first-child { background: #e8fff8; font-weight: bold; text-align: right; }
+        .table-bonuses tr:nth-child(even) td { background: #f5fffc; }
+        .table-bonuses tr:nth-child(even) td:first-child { background: #d8fff0; }
+
+        .manager-row td { background: #fff8e8 !important; }
+        .manager-row td:first-child { background: #ffefcc !important; }
+
+        .total-row td { background: #667eea !important; color: white !important; font-weight: bold; font-size: 14px; }
+        .bonus-total-row td { background: #11998e !important; color: white !important; font-weight: bold; font-size: 14px; }
+
+        .percent-cell { font-weight: bold; padding: 5px; border-radius: 5px; }
+        .percent-good { background: #d4edda; color: #155724; }
+        .percent-warning { background: #fff3cd; color: #856404; }
+        .percent-bad { background: #f8d7da; color: #721c24; }
+
+        .amount-cell { color: #11998e; font-weight: bold; }
+        .details-cell { text-align: right; font-size: 11px; line-height: 1.6; }
+
+        .section-title { background: #f8f9fa; padding: 10px 15px; margin: 20px 0 10px 0; border-right: 4px solid #667eea; font-weight: bold; color: #333; }
+        .section-title.green { border-color: #11998e; }
+
+        .no-print { }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body>
-    <h1>דוח בונוסים - ${monthName} ${settings.currentYear || ''}</h1>
 
-    <div class="summary-box">
-        <div>סה"כ בונוסים לתשלום</div>
-        <div class="summary-total">${window.grandTotal.toFixed(2)} ש"ח</div>
+<!-- דף 1: ביצועים והכנסות -->
+<div class="page">
+    <div class="page-title">📊 דוח ביצועים והכנסות - ${monthName} ${settings.currentYear || ''}</div>
+
+    <div class="summary-row">
+        <div class="summary-card purple">
+            <div class="label">סה"כ הכנסות</div>
+            <div class="value">${stores.reduce((sum, s) => sum + s.currentSales, 0).toLocaleString()} ₪</div>
+        </div>
+        <div class="summary-card green">
+            <div class="label">סה"כ יעד</div>
+            <div class="value">${stores.reduce((sum, s) => sum + s.financialTarget, 0).toLocaleString()} ₪</div>
+        </div>
+        <div class="summary-card orange">
+            <div class="label">עמידה ביעד</div>
+            <div class="value">${stores.reduce((sum, s) => sum + s.financialTarget, 0) > 0 ? ((stores.reduce((sum, s) => sum + s.currentSales, 0) / stores.reduce((sum, s) => sum + s.financialTarget, 0)) * 100).toFixed(1) : 0}%</div>
+        </div>
     </div>
 
-    <h2>ביצועי סניפים</h2>
-    <table>
-        <tr>
-            <th>סניף</th>
-            <th>יעד כספי</th>
-            <th>בפועל</th>
-            <th>עמידה</th>
-            <th>יעד כובעים</th>
-            <th>בפועל</th>
-            <th>עמידה</th>
-        </tr>`;
+    <div class="section-title">ביצועי סניפים</div>
+    <table class="table-stores">
+        <thead>
+            <tr>
+                <th rowspan="2" style="width:15%">סניף</th>
+                <th colspan="3" style="background:#5a6fd6">יעד כספי</th>
+                <th colspan="3" style="background:#764ba2">יעד כובעים</th>
+                <th rowspan="2" style="width:10%">עובדים</th>
+            </tr>
+            <tr>
+                <th>יעד</th>
+                <th>בפועל</th>
+                <th>%</th>
+                <th>יעד</th>
+                <th>בפועל</th>
+                <th>%</th>
+            </tr>
+        </thead>
+        <tbody>`;
 
             stores.forEach(store => {
                 const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100) : 0;
                 const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100) : 0;
-                const finClass = finPercent >= 100 ? 'progress-good' : finPercent >= 95 ? 'progress-warning' : 'progress-bad';
-                const hatClass = hatPercent >= 100 ? 'progress-good' : hatPercent >= 95 ? 'progress-warning' : 'progress-bad';
+                const finClass = finPercent >= 100 ? 'percent-good' : finPercent >= 95 ? 'percent-warning' : 'percent-bad';
+                const hatClass = hatPercent >= 100 ? 'percent-good' : hatPercent >= 95 ? 'percent-warning' : 'percent-bad';
+                const stats = storeStats[store.id] || { empCount: 0 };
 
                 html += `
-        <tr>
-            <td><strong>${store.name}</strong></td>
-            <td>${store.financialTarget.toLocaleString()} ש"ח</td>
-            <td>${store.currentSales.toLocaleString()} ש"ח</td>
-            <td>
-                <div class="progress-bar"><div class="progress-fill ${finClass}" style="width: ${Math.min(finPercent, 100)}%"></div></div>
-                ${finPercent.toFixed(1)}%
-            </td>
-            <td>${store.hatTarget}</td>
-            <td>${store.hatsSold}</td>
-            <td>
-                <div class="progress-bar"><div class="progress-fill ${hatClass}" style="width: ${Math.min(hatPercent, 100)}%"></div></div>
-                ${hatPercent.toFixed(1)}%
-            </td>
-        </tr>`;
+            <tr>
+                <td>${store.name}</td>
+                <td>${store.financialTarget.toLocaleString()}</td>
+                <td>${store.currentSales.toLocaleString()}</td>
+                <td><span class="percent-cell ${finClass}">${finPercent.toFixed(1)}%</span></td>
+                <td>${store.hatTarget}</td>
+                <td>${store.hatsSold}</td>
+                <td><span class="percent-cell ${hatClass}">${hatPercent.toFixed(1)}%</span></td>
+                <td>${stats.empCount}</td>
+            </tr>`;
             });
 
-            html += `</table>
+            const totalFinTarget = stores.reduce((sum, s) => sum + s.financialTarget, 0);
+            const totalFinActual = stores.reduce((sum, s) => sum + s.currentSales, 0);
+            const totalHatTarget = stores.reduce((sum, s) => sum + s.hatTarget, 0);
+            const totalHatActual = stores.reduce((sum, s) => sum + s.hatsSold, 0);
 
-    <h2>פירוט בונוסים לעובדים</h2>
-    <table>
-        <tr>
-            <th>שם</th>
-            <th>סוג</th>
-            <th>סניף</th>
-            <th>פירוט בונוסים</th>
-            <th>סה"כ</th>
-        </tr>`;
+            html += `
+            <tr class="total-row">
+                <td>סה"כ</td>
+                <td>${totalFinTarget.toLocaleString()}</td>
+                <td>${totalFinActual.toLocaleString()}</td>
+                <td>${totalFinTarget > 0 ? ((totalFinActual/totalFinTarget)*100).toFixed(1) : 0}%</td>
+                <td>${totalHatTarget}</td>
+                <td>${totalHatActual}</td>
+                <td>${totalHatTarget > 0 ? ((totalHatActual/totalHatTarget)*100).toFixed(1) : 0}%</td>
+                <td>${employees.length}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- דף 2: בונוסים -->
+<div class="page">
+    <div class="page-title" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">💰 דוח בונוסים - ${monthName} ${settings.currentYear || ''}</div>
+
+    <div class="summary-row">
+        <div class="summary-card green">
+            <div class="label">סה"כ בונוסים לתשלום</div>
+            <div class="value">${window.grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ₪</div>
+        </div>
+        <div class="summary-card purple">
+            <div class="label">מספר זכאים</div>
+            <div class="value">${results.filter(r => r.total > 0).length} / ${results.length}</div>
+        </div>
+        <div class="summary-card orange">
+            <div class="label">ממוצע לעובד</div>
+            <div class="value">${results.length > 0 ? (window.grandTotal / results.length).toFixed(0) : 0} ₪</div>
+        </div>
+    </div>
+
+    <div class="section-title green">פירוט בונוסים לפי עובד</div>
+    <table class="table-bonuses">
+        <thead>
+            <tr>
+                <th style="width:12%">שם</th>
+                <th style="width:8%">תפקיד</th>
+                <th style="width:10%">סניף</th>
+                <th style="width:55%">פירוט בונוסים</th>
+                <th style="width:15%">סה"כ</th>
+            </tr>
+        </thead>
+        <tbody>`;
 
             results.forEach(r => {
                 const empStore = stores.find(s => s.id === r.employee.storeId);
                 const storeName = empStore ? empStore.name : '-';
+                const isManager = r.employee.type === 'manager';
+                const rowClass = isManager ? 'manager-row' : '';
 
                 html += `
-        <tr>
-            <td><strong>${r.employee.name}</strong></td>
-            <td>${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}</td>
-            <td>${storeName}</td>
-            <td>${r.details.length > 0 ? r.details.map(d => `${d.desc}: ${d.amount.toFixed(2)} ש"ח`).join('<br>') : 'אין בונוסים'}</td>
-            <td class="amount">${r.total.toFixed(2)} ש"ח</td>
-        </tr>`;
+            <tr class="${rowClass}">
+                <td>${r.employee.name}</td>
+                <td>${isManager ? '👔 מנהל' : '👤 עובד'}</td>
+                <td>${storeName}</td>
+                <td class="details-cell">${r.details.length > 0 ? r.details.map(d => `✓ ${d.desc}: <strong>${d.amount.toFixed(2)} ₪</strong>`).join('<br>') : '<span style="color:#999">אין בונוסים החודש</span>'}</td>
+                <td class="amount-cell" style="font-size:15px">${r.total.toFixed(2)} ₪</td>
+            </tr>`;
             });
 
             html += `
-        <tr class="total-row">
-            <td colspan="4">סה"כ לתשלום</td>
-            <td>${window.grandTotal.toFixed(2)} ש"ח</td>
-        </tr>
+            <tr class="bonus-total-row">
+                <td colspan="4" style="text-align:center; font-size:16px;">סה"כ לתשלום</td>
+                <td style="font-size:18px;">${window.grandTotal.toFixed(2)} ₪</td>
+            </tr>
+        </tbody>
     </table>
+
+    <div class="section-title green">סיכום לפי סניף</div>
+    <table class="table-bonuses">
+        <thead>
+            <tr>
+                <th>סניף</th>
+                <th>מספר עובדים</th>
+                <th>סה"כ בונוסים</th>
+                <th>ממוצע לעובד</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+            stores.forEach(store => {
+                const stats = storeStats[store.id] || { bonuses: 0, empCount: 0 };
+                html += `
+            <tr>
+                <td>${store.name}</td>
+                <td>${stats.empCount}</td>
+                <td class="amount-cell">${stats.bonuses.toFixed(2)} ₪</td>
+                <td>${stats.empCount > 0 ? (stats.bonuses / stats.empCount).toFixed(2) : 0} ₪</td>
+            </tr>`;
+            });
+
+            html += `
+        </tbody>
+    </table>
+</div>
+
 </body>
 </html>`;
 
