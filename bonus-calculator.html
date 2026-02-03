@@ -313,6 +313,15 @@
                     <label>בונוס פרמיום - לקוח בהנחה (ש"ח):</label>
                     <input type="number" id="empManagerPremiumDiscount" placeholder="השאר ריק לברירת מחדל">
                 </div>
+                <h4>אחוזי תיקונים למנהל</h4>
+                <div class="form-group">
+                    <label>אחוז מפעולות ניקוי (%):</label>
+                    <input type="number" id="empManagerCleaningPercent" step="0.1" placeholder="השאר ריק לברירת מחדל">
+                </div>
+                <div class="form-group">
+                    <label>אחוז משאר התיקונים (%):</label>
+                    <input type="number" id="empManagerRepairPercent" step="0.1" placeholder="השאר ריק לברירת מחדל">
+                </div>
             </div>
 
             <div id="employeeFields">
@@ -506,6 +515,8 @@
             document.getElementById('empManagerRevenuePercent').value = '';
             document.getElementById('empManagerPremiumRegular').value = '';
             document.getElementById('empManagerPremiumDiscount').value = '';
+            document.getElementById('empManagerCleaningPercent').value = '';
+            document.getElementById('empManagerRepairPercent').value = '';
             toggleManagerFields();
             document.getElementById('employeeModal').classList.add('active');
         }
@@ -526,6 +537,8 @@
             document.getElementById('empManagerRevenuePercent').value = emp.managerRevenuePercent || '';
             document.getElementById('empManagerPremiumRegular').value = emp.managerPremiumRegular || '';
             document.getElementById('empManagerPremiumDiscount').value = emp.managerPremiumDiscount || '';
+            document.getElementById('empManagerCleaningPercent').value = emp.managerCleaningPercent || '';
+            document.getElementById('empManagerRepairPercent').value = emp.managerRepairPercent || '';
             toggleManagerFields();
             document.getElementById('employeeModal').classList.add('active');
         }
@@ -561,7 +574,9 @@
                 managerFixedBonus: parseFloat(document.getElementById('empManagerFixedBonus').value) || null,
                 managerRevenuePercent: parseFloat(document.getElementById('empManagerRevenuePercent').value) || null,
                 managerPremiumRegular: parseFloat(document.getElementById('empManagerPremiumRegular').value) || null,
-                managerPremiumDiscount: parseFloat(document.getElementById('empManagerPremiumDiscount').value) || null
+                managerPremiumDiscount: parseFloat(document.getElementById('empManagerPremiumDiscount').value) || null,
+                managerCleaningPercent: parseFloat(document.getElementById('empManagerCleaningPercent').value) || null,
+                managerRepairPercent: parseFloat(document.getElementById('empManagerRepairPercent').value) || null
             };
 
             if (editingEmployeeId) {
@@ -629,7 +644,9 @@
                                 בונוס קבוע: ${emp.managerFixedBonus ? emp.managerFixedBonus + ' ש"ח' : 'לא הוגדר'} |
                                 אחוז מהכנסות: ${emp.managerRevenuePercent ? emp.managerRevenuePercent + '%' : 'לא הוגדר'}<br>
                                 פרמיום רגיל: ${emp.managerPremiumRegular ? emp.managerPremiumRegular + ' ש"ח' : 'ברירת מחדל'} |
-                                פרמיום הנחה: ${emp.managerPremiumDiscount ? emp.managerPremiumDiscount + ' ש"ח' : 'ברירת מחדל'}
+                                פרמיום הנחה: ${emp.managerPremiumDiscount ? emp.managerPremiumDiscount + ' ש"ח' : 'ברירת מחדל'}<br>
+                                ניקוי: ${emp.managerCleaningPercent ? emp.managerCleaningPercent + '%' : 'ברירת מחדל'} |
+                                תיקונים: ${emp.managerRepairPercent ? emp.managerRepairPercent + '%' : 'ברירת מחדל'}
                             </div>
                         ` : `
                             <div style="margin-top: 10px;">
@@ -822,16 +839,19 @@
                     }
                 }
 
-                // Repair bonuses (for all)
-                const cleaningBonus = (data.cleaningRevenue || 0) * ((settings.cleaningPercent || 0) / 100);
-                const repairBonus = (data.repairRevenue || 0) * ((settings.repairPercent || 0) / 100);
+                // Repair bonuses (managers can have custom percentages)
+                const cleaningPct = (emp.type === 'manager' && emp.managerCleaningPercent != null) ? emp.managerCleaningPercent : (settings.cleaningPercent || 0);
+                const repairPct = (emp.type === 'manager' && emp.managerRepairPercent != null) ? emp.managerRepairPercent : (settings.repairPercent || 0);
+
+                const cleaningBonus = (data.cleaningRevenue || 0) * (cleaningPct / 100);
+                const repairBonus = (data.repairRevenue || 0) * (repairPct / 100);
 
                 if (cleaningBonus > 0) {
-                    bonusDetails.push({ desc: `${settings.cleaningPercent}% מניקוי (${data.cleaningRevenue} ש"ח)`, amount: cleaningBonus });
+                    bonusDetails.push({ desc: `${cleaningPct}% מניקוי (${data.cleaningRevenue} ש"ח)`, amount: cleaningBonus });
                     totalBonus += cleaningBonus;
                 }
                 if (repairBonus > 0) {
-                    bonusDetails.push({ desc: `${settings.repairPercent}% מתיקונים (${data.repairRevenue} ש"ח)`, amount: repairBonus });
+                    bonusDetails.push({ desc: `${repairPct}% מתיקונים (${data.repairRevenue} ש"ח)`, amount: repairBonus });
                     totalBonus += repairBonus;
                 }
 
