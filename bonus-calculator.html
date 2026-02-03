@@ -758,8 +758,9 @@
                     if (revenuePercent > 0 && empStore) {
                         const storeMetTarget = empStore.financialTarget > 0 && empStore.currentSales >= empStore.financialTarget;
                         if (storeMetTarget) {
-                            const revenueBonus = empStore.currentSales * (revenuePercent / 100);
-                            bonusDetails.push({ desc: `${revenuePercent}% מהכנסות ${storeName} (עמידה ביעד)`, amount: revenueBonus });
+                            const salesAfterVAT = empStore.currentSales / 1.18; // ניכוי מע"מ 18%
+                            const revenueBonus = salesAfterVAT * (revenuePercent / 100);
+                            bonusDetails.push({ desc: `${revenuePercent}% מהכנסות ${storeName} לאחר מע"מ (${salesAfterVAT.toFixed(0)} ש"ח)`, amount: revenueBonus });
                             totalBonus += revenueBonus;
                         }
                     }
