@@ -387,6 +387,7 @@
 
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('settings')">⚙️ הגדרות</button>
+            <button class="tab-btn" onclick="showTab('stores')">🏪 סניפים</button>
             <button class="tab-btn" onclick="showTab('employees')">👥 עובדים</button>
             <button class="tab-btn" onclick="showTab('sales')">📊 נתוני מכירות</button>
             <button class="tab-btn" onclick="showTab('calculate')">🧮 חישוב בונוסים</button>
@@ -489,6 +490,19 @@
 
             <button class="btn-primary" onclick="saveSettings()">💾 שמור הגדרות</button>
             <button class="btn-danger" onclick="resetSettings()">🔄 אפס להגדרות ברירת מחדל</button>
+        </div>
+
+        <!-- סניפים -->
+        <div id="stores" class="tab-content">
+            <h2>🏪 ניהול סניפים</h2>
+
+            <div class="info-box">
+                <strong>💡 הוראות:</strong> הגדר את הסניפים והיעדים שלהם. כל סניף יכול להיות עם יעדים שונים.
+            </div>
+
+            <button class="btn-success" onclick="showAddStoreModal()">➕ הוסף סניף חדש</button>
+
+            <div id="storesList"></div>
         </div>
 
         <!-- עובדים -->
@@ -595,13 +609,39 @@
                 </select>
             </div>
 
+            <div class="form-group">
+                <label>סניף:</label>
+                <select id="empStoreId">
+                    <option value="">-- בחר סניף --</option>
+                </select>
+            </div>
+
             <div id="managerFields" style="display: none;">
                 <div class="form-group">
                     <label>שם החנות:</label>
                     <input type="text" id="empStore" placeholder="הכנס שם חנות">
                 </div>
+
+                <h4>הגדרות בונוס מנהל</h4>
+                <div class="form-group">
+                    <label>בונוס קבוע למנהל (₪):</label>
+                    <input type="number" id="empManagerFixedBonus" placeholder="סכום הבונוס הקבוע">
+                </div>
+                <div class="form-group">
+                    <label>אחוז מסה"כ הכנסות בעמידה ביעד (%):</label>
+                    <input type="number" id="empManagerRevenuePercent" step="0.1" placeholder="אחוז מההכנסות">
+                </div>
+                <div class="form-group">
+                    <label>בונוס מוצר פרמיום - לקוח רגיל (₪):</label>
+                    <input type="number" id="empManagerPremiumRegular" placeholder="השאר ריק לברירת מחדל">
+                </div>
+                <div class="form-group">
+                    <label>בונוס מוצר פרמיום - לקוח בהנחה (₪):</label>
+                    <input type="number" id="empManagerPremiumDiscount" placeholder="השאר ריק לברירת מחדל">
+                </div>
             </div>
 
+            <div id="employeeFields">
             <h4>בונוסים אישיים (עמידה ביעד שנה שעברה)</h4>
             <div class="form-group">
                 <label>בונוס 95% (₪):</label>
@@ -615,24 +655,67 @@
                 <label>בונוס 105%+ (₪):</label>
                 <input type="number" id="empBonus105" placeholder="השאר ריק לברירת מחדל">
             </div>
+            </div>
 
             <button class="btn-success" onclick="saveEmployee()">💾 שמור</button>
             <button class="btn-danger" onclick="closeModal()">❌ ביטול</button>
         </div>
     </div>
 
+    <!-- מודל הוספת סניף -->
+    <div id="storeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="storeModalTitle">➕ הוסף סניף חדש</h3>
+                <button class="close-btn" onclick="closeStoreModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>שם הסניף:</label>
+                <input type="text" id="storeName" placeholder="הכנס שם סניף">
+            </div>
+
+            <h4>יעדים חודשיים</h4>
+            <div class="form-group">
+                <label>יעד כספי חודשי (₪):</label>
+                <input type="number" id="storeFinancialTarget" placeholder="יעד כספי">
+            </div>
+            <div class="form-group">
+                <label>יעד מכירת כובעים (יחידות):</label>
+                <input type="number" id="storeHatTarget" placeholder="יעד כובעים">
+            </div>
+
+            <h4>נתוני מכירות</h4>
+            <div class="form-group">
+                <label>מכירות חודש נוכחי (₪):</label>
+                <input type="number" id="storeCurrentSales" placeholder="סה״כ מכירות החודש">
+            </div>
+            <div class="form-group">
+                <label>כובעים שנמכרו החודש:</label>
+                <input type="number" id="storeHatsSold" placeholder="כמות כובעים שנמכרו">
+            </div>
+
+            <button class="btn-success" onclick="saveStore()">💾 שמור</button>
+            <button class="btn-danger" onclick="closeStoreModal()">❌ ביטול</button>
+        </div>
+    </div>
+
     <script>
         // Data storage
         let employees = [];
+        let stores = [];
         let settings = {};
         let salesData = {};
         let editingEmployeeId = null;
+        let editingStoreId = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
+            loadStores();
             loadEmployees();
             loadSalesData();
+            renderStores();
             renderEmployees();
             renderSalesData();
 
@@ -651,6 +734,12 @@
 
             if (tabId === 'sales') {
                 renderSalesData();
+            }
+            if (tabId === 'stores') {
+                renderStores();
+            }
+            if (tabId === 'employees') {
+                renderEmployees();
             }
         }
 
@@ -699,16 +788,153 @@
             }
         }
 
+        // Store management
+        function loadStores() {
+            const saved = localStorage.getItem('bonusStores');
+            if (saved) {
+                stores = JSON.parse(saved);
+            }
+        }
+
+        function saveStoresData() {
+            localStorage.setItem('bonusStores', JSON.stringify(stores));
+        }
+
+        function showAddStoreModal() {
+            editingStoreId = null;
+            document.getElementById('storeModalTitle').textContent = '➕ הוסף סניף חדש';
+            document.getElementById('storeName').value = '';
+            document.getElementById('storeFinancialTarget').value = '';
+            document.getElementById('storeHatTarget').value = '';
+            document.getElementById('storeCurrentSales').value = '';
+            document.getElementById('storeHatsSold').value = '';
+            document.getElementById('storeModal').classList.add('active');
+        }
+
+        function editStore(id) {
+            const store = stores.find(s => s.id === id);
+            if (!store) return;
+
+            editingStoreId = id;
+            document.getElementById('storeModalTitle').textContent = '✏️ ערוך סניף';
+            document.getElementById('storeName').value = store.name;
+            document.getElementById('storeFinancialTarget').value = store.financialTarget || '';
+            document.getElementById('storeHatTarget').value = store.hatTarget || '';
+            document.getElementById('storeCurrentSales').value = store.currentSales || '';
+            document.getElementById('storeHatsSold').value = store.hatsSold || '';
+            document.getElementById('storeModal').classList.add('active');
+        }
+
+        function closeStoreModal() {
+            document.getElementById('storeModal').classList.remove('active');
+        }
+
+        function saveStore() {
+            const name = document.getElementById('storeName').value.trim();
+            if (!name) {
+                alert('יש להזין שם סניף');
+                return;
+            }
+
+            const store = {
+                id: editingStoreId || Date.now(),
+                name: name,
+                financialTarget: parseFloat(document.getElementById('storeFinancialTarget').value) || 0,
+                hatTarget: parseFloat(document.getElementById('storeHatTarget').value) || 0,
+                currentSales: parseFloat(document.getElementById('storeCurrentSales').value) || 0,
+                hatsSold: parseFloat(document.getElementById('storeHatsSold').value) || 0
+            };
+
+            if (editingStoreId) {
+                const index = stores.findIndex(s => s.id === editingStoreId);
+                stores[index] = store;
+            } else {
+                stores.push(store);
+            }
+
+            saveStoresData();
+            closeStoreModal();
+            renderStores();
+            renderEmployees(); // Update employee dropdowns
+        }
+
+        function deleteStore(id) {
+            if (confirm('האם אתה בטוח שברצונך למחוק סניף זה?')) {
+                stores = stores.filter(s => s.id !== id);
+                // Remove store reference from employees
+                employees.forEach(emp => {
+                    if (emp.storeId === id) {
+                        emp.storeId = null;
+                    }
+                });
+                saveStoresData();
+                localStorage.setItem('bonusEmployees', JSON.stringify(employees));
+                renderStores();
+                renderEmployees();
+            }
+        }
+
+        function renderStores() {
+            const container = document.getElementById('storesList');
+            if (stores.length === 0) {
+                container.innerHTML = '<div class="info-box">אין סניפים במערכת. לחץ על "הוסף סניף חדש" להתחיל.</div>';
+                return;
+            }
+
+            container.innerHTML = stores.map(store => {
+                const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100).toFixed(1) : 0;
+                const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100).toFixed(1) : 0;
+                const storeEmployees = employees.filter(e => e.storeId === store.id);
+
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header">
+                            <span class="employee-name">🏪 ${store.name}</span>
+                            <span class="employee-type type-manager">${storeEmployees.length} עובדים</span>
+                        </div>
+                        <div class="grid-2">
+                            <div>
+                                <strong>יעד כספי:</strong> ₪${store.financialTarget.toLocaleString()}<br>
+                                <strong>מכירות:</strong> ₪${store.currentSales.toLocaleString()} (${finPercent}%)
+                            </div>
+                            <div>
+                                <strong>יעד כובעים:</strong> ${store.hatTarget} יח'<br>
+                                <strong>נמכרו:</strong> ${store.hatsSold} יח' (${hatPercent}%)
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn-primary" onclick="editStore(${store.id})">✏️ ערוך</button>
+                            <button class="btn-danger" onclick="deleteStore(${store.id})">🗑️ מחק</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStoreSelectOptions(selectedId) {
+            let options = '<option value="">-- בחר סניף --</option>';
+            stores.forEach(store => {
+                const selected = store.id === selectedId ? 'selected' : '';
+                options += `<option value="${store.id}" ${selected}>${store.name}</option>`;
+            });
+            return options;
+        }
+
         // Employee management
         function showAddEmployeeModal() {
             editingEmployeeId = null;
             document.getElementById('modalTitle').textContent = '➕ הוסף עובד חדש';
             document.getElementById('empName').value = '';
             document.getElementById('empType').value = 'employee';
+            document.getElementById('empStoreId').innerHTML = getStoreSelectOptions(null);
             document.getElementById('empStore').value = '';
             document.getElementById('empBonus95').value = '';
             document.getElementById('empBonus100').value = '';
             document.getElementById('empBonus105').value = '';
+            document.getElementById('empManagerFixedBonus').value = '';
+            document.getElementById('empManagerRevenuePercent').value = '';
+            document.getElementById('empManagerPremiumRegular').value = '';
+            document.getElementById('empManagerPremiumDiscount').value = '';
             toggleManagerFields();
             document.getElementById('employeeModal').classList.add('active');
         }
@@ -721,10 +947,15 @@
             document.getElementById('modalTitle').textContent = '✏️ ערוך עובד';
             document.getElementById('empName').value = emp.name;
             document.getElementById('empType').value = emp.type;
+            document.getElementById('empStoreId').innerHTML = getStoreSelectOptions(emp.storeId);
             document.getElementById('empStore').value = emp.store || '';
             document.getElementById('empBonus95').value = emp.bonus95 || '';
             document.getElementById('empBonus100').value = emp.bonus100 || '';
             document.getElementById('empBonus105').value = emp.bonus105 || '';
+            document.getElementById('empManagerFixedBonus').value = emp.managerFixedBonus || '';
+            document.getElementById('empManagerRevenuePercent').value = emp.managerRevenuePercent || '';
+            document.getElementById('empManagerPremiumRegular').value = emp.managerPremiumRegular || '';
+            document.getElementById('empManagerPremiumDiscount').value = emp.managerPremiumDiscount || '';
             toggleManagerFields();
             document.getElementById('employeeModal').classList.add('active');
         }
@@ -736,6 +967,7 @@
         function toggleManagerFields() {
             const isManager = document.getElementById('empType').value === 'manager';
             document.getElementById('managerFields').style.display = isManager ? 'block' : 'none';
+            document.getElementById('employeeFields').style.display = isManager ? 'none' : 'block';
         }
 
         function saveEmployee() {
@@ -745,14 +977,20 @@
                 return;
             }
 
+            const storeIdVal = document.getElementById('empStoreId').value;
             const employee = {
                 id: editingEmployeeId || Date.now(),
                 name: name,
                 type: document.getElementById('empType').value,
+                storeId: storeIdVal ? parseInt(storeIdVal) : null,
                 store: document.getElementById('empStore').value.trim(),
                 bonus95: parseFloat(document.getElementById('empBonus95').value) || null,
                 bonus100: parseFloat(document.getElementById('empBonus100').value) || null,
-                bonus105: parseFloat(document.getElementById('empBonus105').value) || null
+                bonus105: parseFloat(document.getElementById('empBonus105').value) || null,
+                managerFixedBonus: parseFloat(document.getElementById('empManagerFixedBonus').value) || null,
+                managerRevenuePercent: parseFloat(document.getElementById('empManagerRevenuePercent').value) || null,
+                managerPremiumRegular: parseFloat(document.getElementById('empManagerPremiumRegular').value) || null,
+                managerPremiumDiscount: parseFloat(document.getElementById('empManagerPremiumDiscount').value) || null
             };
 
             if (editingEmployeeId) {
@@ -807,27 +1045,41 @@
                 return;
             }
 
-            container.innerHTML = employees.map(emp => `
-                <div class="employee-card">
-                    <div class="employee-header">
-                        <span class="employee-name">${emp.name}</span>
-                        <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
-                            ${emp.type === 'manager' ? '👔 מנהל' : '👷 עובד'}
-                        </span>
+            container.innerHTML = employees.map(emp => {
+                const empStore = stores.find(s => s.id === emp.storeId);
+                const storeName = empStore ? empStore.name : (emp.store || 'לא משויך');
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header">
+                            <span class="employee-name">${emp.name}</span>
+                            <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
+                                ${emp.type === 'manager' ? '👔 מנהל' : '👷 עובד'}
+                            </span>
+                        </div>
+                        <div>🏪 סניף: ${storeName}</div>
+                        ${emp.type === 'manager' ? `
+                            <div style="margin-top: 10px;">
+                                <strong>הגדרות מנהל:</strong><br>
+                                בונוס קבוע: ${emp.managerFixedBonus ? '₪' + emp.managerFixedBonus : 'לא הוגדר'} |
+                                אחוז מהכנסות: ${emp.managerRevenuePercent ? emp.managerRevenuePercent + '%' : 'לא הוגדר'}<br>
+                                פרמיום רגיל: ${emp.managerPremiumRegular ? '₪' + emp.managerPremiumRegular : 'ברירת מחדל'} |
+                                פרמיום הנחה: ${emp.managerPremiumDiscount ? '₪' + emp.managerPremiumDiscount : 'ברירת מחדל'}
+                            </div>
+                        ` : `
+                            <div style="margin-top: 10px;">
+                                <strong>בונוסים אישיים:</strong>
+                                95%: ${emp.bonus95 ? '₪' + emp.bonus95 : 'ברירת מחדל'} |
+                                100%: ${emp.bonus100 ? '₪' + emp.bonus100 : 'ברירת מחדל'} |
+                                105%+: ${emp.bonus105 ? '₪' + emp.bonus105 : 'ברירת מחדל'}
+                            </div>
+                        `}
+                        <div style="margin-top: 10px;">
+                            <button class="btn-primary" onclick="editEmployee(${emp.id})">✏️ ערוך</button>
+                            <button class="btn-danger" onclick="deleteEmployee(${emp.id})">🗑️ מחק</button>
+                        </div>
                     </div>
-                    ${emp.store ? `<div>🏪 חנות: ${emp.store}</div>` : ''}
-                    <div style="margin-top: 10px;">
-                        <strong>בונוסים אישיים:</strong>
-                        95%: ${emp.bonus95 ? '₪' + emp.bonus95 : 'ברירת מחדל'} |
-                        100%: ${emp.bonus100 ? '₪' + emp.bonus100 : 'ברירת מחדל'} |
-                        105%+: ${emp.bonus105 ? '₪' + emp.bonus105 : 'ברירת מחדל'}
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <button class="btn-primary" onclick="editEmployee(${emp.id})">✏️ ערוך</button>
-                        <button class="btn-danger" onclick="deleteEmployee(${emp.id})">🗑️ מחק</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // Sales data management
@@ -956,31 +1208,52 @@
                 let totalBonus = 0;
 
                 if (emp.type === 'manager') {
-                    // 1.1 Fixed manager bonus
-                    const fixedBonus = settings.managerFixedBonus;
-                    bonusDetails.push({ desc: 'בונוס קבוע למנהל', amount: fixedBonus });
-                    totalBonus += fixedBonus;
+                    // Get store data for this manager
+                    const mgrStore = stores.find(s => s.id === emp.storeId);
+                    const storeName = mgrStore ? mgrStore.name : '';
 
-                    // 1.2 Revenue percentage if met target
-                    if (metCompanyTarget) {
-                        const revenueBonus = settings.currentMonthRevenue * (settings.managerRevenuePercent / 100);
-                        bonusDetails.push({ desc: `${settings.managerRevenuePercent}% מהכנסות (עמידה ביעד)`, amount: revenueBonus });
+                    // 1.1 Fixed manager bonus (individual per manager)
+                    const fixedBonus = emp.managerFixedBonus || 0;
+                    if (fixedBonus > 0) {
+                        bonusDetails.push({ desc: 'בונוס קבוע למנהל', amount: fixedBonus });
+                        totalBonus += fixedBonus;
+                    }
+
+                    // 1.2 Revenue percentage if store met target (individual per manager)
+                    const revenuePercent = emp.managerRevenuePercent || 0;
+                    if (revenuePercent > 0 && mgrStore) {
+                        // Check if store met its target
+                        const storeMetTarget = mgrStore.financialTarget > 0 && mgrStore.currentSales >= mgrStore.financialTarget;
+                        if (storeMetTarget) {
+                            const revenueBonus = mgrStore.currentSales * (revenuePercent / 100);
+                            bonusDetails.push({ desc: `${revenuePercent}% מהכנסות ${storeName} (עמידה ביעד)`, amount: revenueBonus });
+                            totalBonus += revenueBonus;
+                        }
+                    } else if (revenuePercent > 0 && metCompanyTarget) {
+                        // Fallback to company-wide target if no store assigned
+                        const revenueBonus = settings.currentMonthRevenue * (revenuePercent / 100);
+                        bonusDetails.push({ desc: `${revenuePercent}% מהכנסות (עמידה ביעד)`, amount: revenueBonus });
                         totalBonus += revenueBonus;
                     }
 
-                    // 1.3 Premium products
-                    const premRegBonus = data.premiumRegular * settings.managerPremiumRegular;
-                    const premDiscBonus = data.premiumDiscount * settings.managerPremiumDiscount;
+                    // 1.3 Premium products (individual or default)
+                    const premRegRate = emp.managerPremiumRegular || settings.managerPremiumRegular;
+                    const premDiscRate = emp.managerPremiumDiscount || settings.managerPremiumDiscount;
+                    const premRegBonus = data.premiumRegular * premRegRate;
+                    const premDiscBonus = data.premiumDiscount * premDiscRate;
                     if (premRegBonus > 0) {
-                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות רגילים (${data.premiumRegular} יח')`, amount: premRegBonus });
+                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות רגילים (${data.premiumRegular} יח' × ₪${premRegRate})`, amount: premRegBonus });
                         totalBonus += premRegBonus;
                     }
                     if (premDiscBonus > 0) {
-                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות בהנחה (${data.premiumDiscount} יח')`, amount: premDiscBonus });
+                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות בהנחה (${data.premiumDiscount} יח' × ₪${premDiscRate})`, amount: premDiscBonus });
                         totalBonus += premDiscBonus;
                     }
                 } else {
                     // Employee bonuses
+
+                    // Get store data for this employee
+                    const empStore = stores.find(s => s.id === emp.storeId);
 
                     // 2.1 Year-over-year comparison
                     if (data.lastYearSales > 0) {
@@ -1001,34 +1274,40 @@
                         }
                     }
 
-                    // 2.2 Financial target
-                    if (data.financialTarget > 0) {
-                        const finPercent = (data.financialActual / data.financialTarget) * 100;
+                    // 2.2 Financial target - use store target if available
+                    const finTarget = empStore ? empStore.financialTarget : data.financialTarget;
+                    const finActual = empStore ? empStore.currentSales : data.financialActual;
+                    if (finTarget > 0) {
+                        const finPercent = (finActual / finTarget) * 100;
+                        const storeInfo = empStore ? ` (${empStore.name})` : '';
 
                         if (finPercent >= 115) {
-                            bonusDetails.push({ desc: `יעד כספי (${finPercent.toFixed(1)}% - 115%+)`, amount: settings.financialBonus115 });
+                            bonusDetails.push({ desc: `יעד כספי${storeInfo} (${finPercent.toFixed(1)}% - 115%+)`, amount: settings.financialBonus115 });
                             totalBonus += settings.financialBonus115;
                         } else if (finPercent >= 105) {
-                            bonusDetails.push({ desc: `יעד כספי (${finPercent.toFixed(1)}% - 105%)`, amount: settings.financialBonus105 });
+                            bonusDetails.push({ desc: `יעד כספי${storeInfo} (${finPercent.toFixed(1)}% - 105%)`, amount: settings.financialBonus105 });
                             totalBonus += settings.financialBonus105;
                         } else if (finPercent >= 95) {
-                            bonusDetails.push({ desc: `יעד כספי (${finPercent.toFixed(1)}% - 95%)`, amount: settings.financialBonus95 });
+                            bonusDetails.push({ desc: `יעד כספי${storeInfo} (${finPercent.toFixed(1)}% - 95%)`, amount: settings.financialBonus95 });
                             totalBonus += settings.financialBonus95;
                         }
                     }
 
-                    // 2.2 Hat target
-                    if (data.hatTarget > 0) {
-                        const hatPercent = (data.hatActual / data.hatTarget) * 100;
+                    // 2.2 Hat target - use store target if available
+                    const hatTarget = empStore ? empStore.hatTarget : data.hatTarget;
+                    const hatActual = empStore ? empStore.hatsSold : data.hatActual;
+                    if (hatTarget > 0) {
+                        const hatPercent = (hatActual / hatTarget) * 100;
+                        const storeInfo = empStore ? ` (${empStore.name})` : '';
 
                         if (hatPercent >= 115) {
-                            bonusDetails.push({ desc: `יעד כובעים (${hatPercent.toFixed(1)}% - 115%+)`, amount: settings.hatBonus115 });
+                            bonusDetails.push({ desc: `יעד כובעים${storeInfo} (${hatPercent.toFixed(1)}% - 115%+)`, amount: settings.hatBonus115 });
                             totalBonus += settings.hatBonus115;
                         } else if (hatPercent >= 105) {
-                            bonusDetails.push({ desc: `יעד כובעים (${hatPercent.toFixed(1)}% - 105%)`, amount: settings.hatBonus105 });
+                            bonusDetails.push({ desc: `יעד כובעים${storeInfo} (${hatPercent.toFixed(1)}% - 105%)`, amount: settings.hatBonus105 });
                             totalBonus += settings.hatBonus105;
                         } else if (hatPercent >= 95) {
-                            bonusDetails.push({ desc: `יעד כובעים (${hatPercent.toFixed(1)}% - 95%)`, amount: settings.hatBonus95 });
+                            bonusDetails.push({ desc: `יעד כובעים${storeInfo} (${hatPercent.toFixed(1)}% - 95%)`, amount: settings.hatBonus95 });
                             totalBonus += settings.hatBonus95;
                         }
                     }
