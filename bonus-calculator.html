@@ -101,6 +101,19 @@
         .data-input-row label { font-weight: bold; }
         .data-input-row input { max-width: 120px; }
 
+        /* Compact table styles */
+        .compact-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .compact-table th, .compact-table td { padding: 8px 6px; text-align: center; border: 1px solid #ddd; }
+        .compact-table th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 12px; }
+        .compact-table input { width: 70px; padding: 5px; font-size: 12px; text-align: center; }
+        .compact-table .name-cell { text-align: right; font-weight: bold; min-width: 80px; }
+        .compact-table tr:nth-child(even) { background: #f8f9ff; }
+        .compact-table tr:hover { background: #e8e9ff; }
+        .percent-display { font-size: 11px; color: #666; }
+        .percent-good { color: #11998e; font-weight: bold; }
+        .percent-warning { color: #f0ad4e; font-weight: bold; }
+        .percent-bad { color: #eb3349; font-weight: bold; }
+
         @media print {
             body { background: white; }
             .container { box-shadow: none; }
@@ -261,6 +274,7 @@
             </div>
 
             <button class="btn-success" onclick="exportToExcel()">ייצוא לאקסל</button>
+            <button class="btn-primary" onclick="exportToColorfulExcel()">ייצוא דוח מפורט (HTML)</button>
             <button class="btn-info" onclick="printReport()">הדפס דוח</button>
 
             <div id="finalReport"></div>
@@ -448,48 +462,54 @@
             }
         }
 
+        function getPercentClass(percent) {
+            if (percent >= 100) return 'percent-good';
+            if (percent >= 95) return 'percent-warning';
+            return 'percent-bad';
+        }
+
         function renderStores() {
             const container = document.getElementById('storesList');
-            container.innerHTML = stores.map(store => {
+
+            let html = `
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">סניף</th>
+                            <th colspan="3">יעד כספי</th>
+                            <th colspan="3">יעד כובעים</th>
+                        </tr>
+                        <tr>
+                            <th>יעד</th>
+                            <th>בפועל</th>
+                            <th>%</th>
+                            <th>יעד</th>
+                            <th>בפועל</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            stores.forEach(store => {
                 const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100).toFixed(1) : 0;
                 const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100).toFixed(1) : 0;
-                const storeEmployees = employees.filter(e => e.storeId === store.id);
 
-                return `
-                    <div class="employee-card">
-                        <div class="employee-header">
-                            <span class="employee-name">${store.name}</span>
-                            <span class="employee-type type-manager">${storeEmployees.length} עובדים</span>
-                        </div>
-                        <div class="grid-2">
-                            <div class="setting-group">
-                                <h4>יעד כספי</h4>
-                                <div class="setting-row">
-                                    <label>יעד (ש"ח):</label>
-                                    <input type="number" value="${store.financialTarget}" onchange="updateStore(${store.id}, 'financialTarget', this.value)">
-                                </div>
-                                <div class="setting-row">
-                                    <label>בפועל (ש"ח):</label>
-                                    <input type="number" value="${store.currentSales}" onchange="updateStore(${store.id}, 'currentSales', this.value)">
-                                </div>
-                                <div><strong>עמידה:</strong> ${finPercent}%</div>
-                            </div>
-                            <div class="setting-group">
-                                <h4>יעד כובעים</h4>
-                                <div class="setting-row">
-                                    <label>יעד (יח'):</label>
-                                    <input type="number" value="${store.hatTarget}" onchange="updateStore(${store.id}, 'hatTarget', this.value)">
-                                </div>
-                                <div class="setting-row">
-                                    <label>בפועל (יח'):</label>
-                                    <input type="number" value="${store.hatsSold}" onchange="updateStore(${store.id}, 'hatsSold', this.value)">
-                                </div>
-                                <div><strong>עמידה:</strong> ${hatPercent}%</div>
-                            </div>
-                        </div>
-                    </div>
+                html += `
+                    <tr>
+                        <td class="name-cell">${store.name}</td>
+                        <td><input type="number" value="${store.financialTarget}" onchange="updateStore(${store.id}, 'financialTarget', this.value)"></td>
+                        <td><input type="number" value="${store.currentSales}" onchange="updateStore(${store.id}, 'currentSales', this.value)"></td>
+                        <td class="${getPercentClass(finPercent)}">${finPercent}%</td>
+                        <td><input type="number" value="${store.hatTarget}" onchange="updateStore(${store.id}, 'hatTarget', this.value)"></td>
+                        <td><input type="number" value="${store.hatsSold}" onchange="updateStore(${store.id}, 'hatsSold', this.value)"></td>
+                        <td class="${getPercentClass(hatPercent)}">${hatPercent}%</td>
+                    </tr>
                 `;
-            }).join('');
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
         function getStoreSelectOptions(selectedId) {
@@ -692,58 +712,78 @@
                 return;
             }
 
-            container.innerHTML = employees.map(emp => {
-                const data = monthlyData[emp.id] || { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
-                const empStore = stores.find(s => s.id === emp.storeId);
-                const storeName = empStore ? empStore.name : 'לא משויך';
+            const managers = employees.filter(e => e.type === 'manager');
+            const regularEmployees = employees.filter(e => e.type !== 'manager');
 
-                const premiumSection = emp.type === 'manager' ? `
-                    <div class="setting-group">
-                        <h4>מוצרי פרמיום שנמכרו</h4>
-                        <div class="setting-row">
-                            <label>לקוחות רגילים (יח'):</label>
-                            <input type="number" value="${data.premiumRegular || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumRegular', this.value)">
-                        </div>
-                        <div class="setting-row">
-                            <label>לקוחות בהנחה (יח'):</label>
-                            <input type="number" value="${data.premiumDiscount || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumDiscount', this.value)">
-                        </div>
-                    </div>
-                ` : `
-                    <div class="setting-group">
-                        <h4>מוצרי פרמיום שנמכרו</h4>
-                        <div class="setting-row">
-                            <label>סה"כ פרמיום (יח'):</label>
-                            <input type="number" value="${data.premiumTotal || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumTotal', this.value)">
-                        </div>
-                    </div>
-                `;
+            let html = '';
 
-                return `
-                    <div class="employee-card">
-                        <div class="employee-header">
-                            <span class="employee-name">${emp.name}</span>
-                            <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
-                                ${emp.type === 'manager' ? 'מנהל' : 'עובד'} - ${storeName}
-                            </span>
-                        </div>
-                        <div class="grid-2">
-                            ${premiumSection}
-                            <div class="setting-group">
-                                <h4>תיקונים</h4>
-                                <div class="setting-row">
-                                    <label>הכנסות ניקוי (ש"ח):</label>
-                                    <input type="number" value="${data.cleaningRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'cleaningRevenue', this.value)">
-                                </div>
-                                <div class="setting-row">
-                                    <label>תיקונים אחרים (ש"ח):</label>
-                                    <input type="number" value="${data.repairRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'repairRevenue', this.value)">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // Managers table
+            if (managers.length > 0) {
+                html += `<h3>מנהלים</h3>
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>סניף</th>
+                            <th>פרמיום רגיל</th>
+                            <th>פרמיום הנחה</th>
+                            <th>ניקוי (ש"ח)</th>
+                            <th>תיקונים (ש"ח)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                managers.forEach(emp => {
+                    const data = monthlyData[emp.id] || {};
+                    const empStore = stores.find(s => s.id === emp.storeId);
+                    const storeName = empStore ? empStore.name : '-';
+
+                    html += `
+                        <tr>
+                            <td class="name-cell">${emp.name}</td>
+                            <td>${storeName}</td>
+                            <td><input type="number" value="${data.premiumRegular || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumRegular', this.value)"></td>
+                            <td><input type="number" value="${data.premiumDiscount || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumDiscount', this.value)"></td>
+                            <td><input type="number" value="${data.cleaningRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'cleaningRevenue', this.value)"></td>
+                            <td><input type="number" value="${data.repairRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'repairRevenue', this.value)"></td>
+                        </tr>`;
+                });
+                html += '</tbody></table>';
+            }
+
+            // Regular employees table
+            if (regularEmployees.length > 0) {
+                html += `<h3>עובדים</h3>
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>סניף</th>
+                            <th>פרמיום (יח')</th>
+                            <th>ניקוי (ש"ח)</th>
+                            <th>תיקונים (ש"ח)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                regularEmployees.forEach(emp => {
+                    const data = monthlyData[emp.id] || {};
+                    const empStore = stores.find(s => s.id === emp.storeId);
+                    const storeName = empStore ? empStore.name : '-';
+
+                    html += `
+                        <tr>
+                            <td class="name-cell">${emp.name}</td>
+                            <td>${storeName}</td>
+                            <td><input type="number" value="${data.premiumTotal || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumTotal', this.value)"></td>
+                            <td><input type="number" value="${data.cleaningRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'cleaningRevenue', this.value)"></td>
+                            <td><input type="number" value="${data.repairRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'repairRevenue', this.value)"></td>
+                        </tr>`;
+                });
+                html += '</tbody></table>';
+            }
+
+            container.innerHTML = html;
         }
 
         // Bonus calculation
@@ -963,6 +1003,126 @@
             window.print();
         }
 
+        function exportToColorfulExcel() {
+            if (!window.calculationResults) {
+                alert('יש לחשב בונוסים תחילה');
+                return;
+            }
+
+            const monthName = hebrewMonths[(settings.currentMonth || 1) - 1];
+            const results = window.calculationResults;
+
+            let html = `
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
+        h1 { color: #667eea; text-align: center; }
+        h2 { color: #333; border-bottom: 2px solid #667eea; padding-bottom: 5px; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { background: #667eea; color: white; padding: 12px; text-align: right; }
+        td { padding: 10px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background: #f8f9ff; }
+        .total-row { background: #11998e !important; color: white; font-weight: bold; }
+        .amount { color: #11998e; font-weight: bold; }
+        .summary-box { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; }
+        .summary-total { font-size: 2em; font-weight: bold; }
+        .store-section { background: #f0f0f0; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .progress-bar { background: #ddd; border-radius: 10px; height: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 10px; }
+        .progress-good { background: #11998e; }
+        .progress-warning { background: #f0ad4e; }
+        .progress-bad { background: #eb3349; }
+    </style>
+</head>
+<body>
+    <h1>דוח בונוסים - ${monthName} ${settings.currentYear || ''}</h1>
+
+    <div class="summary-box">
+        <div>סה"כ בונוסים לתשלום</div>
+        <div class="summary-total">${window.grandTotal.toFixed(2)} ש"ח</div>
+    </div>
+
+    <h2>ביצועי סניפים</h2>
+    <table>
+        <tr>
+            <th>סניף</th>
+            <th>יעד כספי</th>
+            <th>בפועל</th>
+            <th>עמידה</th>
+            <th>יעד כובעים</th>
+            <th>בפועל</th>
+            <th>עמידה</th>
+        </tr>`;
+
+            stores.forEach(store => {
+                const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100) : 0;
+                const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100) : 0;
+                const finClass = finPercent >= 100 ? 'progress-good' : finPercent >= 95 ? 'progress-warning' : 'progress-bad';
+                const hatClass = hatPercent >= 100 ? 'progress-good' : hatPercent >= 95 ? 'progress-warning' : 'progress-bad';
+
+                html += `
+        <tr>
+            <td><strong>${store.name}</strong></td>
+            <td>${store.financialTarget.toLocaleString()} ש"ח</td>
+            <td>${store.currentSales.toLocaleString()} ש"ח</td>
+            <td>
+                <div class="progress-bar"><div class="progress-fill ${finClass}" style="width: ${Math.min(finPercent, 100)}%"></div></div>
+                ${finPercent.toFixed(1)}%
+            </td>
+            <td>${store.hatTarget}</td>
+            <td>${store.hatsSold}</td>
+            <td>
+                <div class="progress-bar"><div class="progress-fill ${hatClass}" style="width: ${Math.min(hatPercent, 100)}%"></div></div>
+                ${hatPercent.toFixed(1)}%
+            </td>
+        </tr>`;
+            });
+
+            html += `</table>
+
+    <h2>פירוט בונוסים לעובדים</h2>
+    <table>
+        <tr>
+            <th>שם</th>
+            <th>סוג</th>
+            <th>סניף</th>
+            <th>פירוט בונוסים</th>
+            <th>סה"כ</th>
+        </tr>`;
+
+            results.forEach(r => {
+                const empStore = stores.find(s => s.id === r.employee.storeId);
+                const storeName = empStore ? empStore.name : '-';
+
+                html += `
+        <tr>
+            <td><strong>${r.employee.name}</strong></td>
+            <td>${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}</td>
+            <td>${storeName}</td>
+            <td>${r.details.length > 0 ? r.details.map(d => `${d.desc}: ${d.amount.toFixed(2)} ש"ח`).join('<br>') : 'אין בונוסים'}</td>
+            <td class="amount">${r.total.toFixed(2)} ש"ח</td>
+        </tr>`;
+            });
+
+            html += `
+        <tr class="total-row">
+            <td colspan="4">סה"כ לתשלום</td>
+            <td>${window.grandTotal.toFixed(2)} ש"ח</td>
+        </tr>
+    </table>
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `דוח_בונוסים_${monthName}_${settings.currentYear || ''}.xls`;
+            link.click();
+        }
+
         // Backup and Restore
         function saveBackup() {
             const backup = {
@@ -1059,40 +1219,54 @@
             const file = event.target.files[0];
             if (!file) return;
 
+            // Helper: only update if value is not empty
+            function updateIfFilled(obj, field, value) {
+                const trimmed = (value || '').toString().trim();
+                if (trimmed !== '' && !isNaN(parseFloat(trimmed))) {
+                    obj[field] = parseFloat(trimmed);
+                }
+            }
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const text = e.target.result;
                     const lines = text.split('\n').filter(line => line.trim());
 
-                    // Skip header
-                    for (let i = 1; i < lines.length; i++) {
+                    // Skip header (may have 2 header rows)
+                    let startRow = 1;
+                    if (lines.length > 1 && (lines[1].includes('יעד') || lines[1].includes('בפועל'))) {
+                        startRow = 2;
+                    }
+
+                    for (let i = startRow; i < lines.length; i++) {
                         const cols = parseCSVLine(lines[i]);
                         if (cols.length < 3) continue;
 
                         const type = cols[0].trim();
                         const id = parseInt(cols[1]);
+                        if (isNaN(id)) continue;
 
                         if (type === 'סניף') {
                             const store = stores.find(s => s.id === id);
                             if (store) {
-                                store.financialTarget = parseFloat(cols[4]) || 0;
-                                store.currentSales = parseFloat(cols[5]) || 0;
-                                store.hatTarget = parseFloat(cols[6]) || 0;
-                                store.hatsSold = parseFloat(cols[7]) || 0;
+                                updateIfFilled(store, 'financialTarget', cols[4]);
+                                updateIfFilled(store, 'currentSales', cols[5]);
+                                updateIfFilled(store, 'hatTarget', cols[6]);
+                                updateIfFilled(store, 'hatsSold', cols[7]);
                             }
                         } else if (type === 'מנהל' || type === 'עובד') {
                             if (!monthlyData[id]) {
                                 monthlyData[id] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
                             }
                             if (type === 'מנהל') {
-                                monthlyData[id].premiumRegular = parseFloat(cols[8]) || 0;
-                                monthlyData[id].premiumDiscount = parseFloat(cols[9]) || 0;
+                                updateIfFilled(monthlyData[id], 'premiumRegular', cols[8]);
+                                updateIfFilled(monthlyData[id], 'premiumDiscount', cols[9]);
                             } else {
-                                monthlyData[id].premiumTotal = parseFloat(cols[10]) || 0;
+                                updateIfFilled(monthlyData[id], 'premiumTotal', cols[10]);
                             }
-                            monthlyData[id].cleaningRevenue = parseFloat(cols[11]) || 0;
-                            monthlyData[id].repairRevenue = parseFloat(cols[12]) || 0;
+                            updateIfFilled(monthlyData[id], 'cleaningRevenue', cols[11]);
+                            updateIfFilled(monthlyData[id], 'repairRevenue', cols[12]);
                         }
                     }
 
