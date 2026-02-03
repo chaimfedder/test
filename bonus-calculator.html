@@ -131,30 +131,12 @@
                 הבונוסים האישיים לכל עובד/מנהל מוגדרים בלשונית "עובדים".
             </div>
 
-            <!-- בחירת חודש עברי -->
-            <h3>תקופת חישוב</h3>
+            <!-- גיבוי ושחזור -->
+            <h3>גיבוי ושחזור נתונים</h3>
             <div class="setting-group">
-                <div class="setting-row">
-                    <label>חודש:</label>
-                    <select id="currentMonth" onchange="saveSettings()">
-                        <option value="1">תשרי</option>
-                        <option value="2">חשוון</option>
-                        <option value="3">כסלו</option>
-                        <option value="4">טבת</option>
-                        <option value="5">שבט</option>
-                        <option value="6">אדר</option>
-                        <option value="7">ניסן</option>
-                        <option value="8">אייר</option>
-                        <option value="9">סיוון</option>
-                        <option value="10">תמוז</option>
-                        <option value="11">אב</option>
-                        <option value="12">אלול</option>
-                    </select>
-                </div>
-                <div class="setting-row">
-                    <label>שנה:</label>
-                    <input type="text" id="currentYear" value="תשפ״ה" onchange="saveSettings()">
-                </div>
+                <button class="btn-success" onclick="saveBackup()">שמור גיבוי</button>
+                <button class="btn-info" onclick="document.getElementById('loadBackupFile').click()">טען גיבוי</button>
+                <input type="file" id="loadBackupFile" accept=".json" style="display:none" onchange="loadBackup(event)">
             </div>
 
             <!-- בונוס פרמיום -->
@@ -219,7 +201,42 @@
             <h2>נתונים חודשיים</h2>
 
             <div class="info-box">
-                <strong>הוראות:</strong> הזן כאן כמה מוצרי פרמיום נמכרו ותיקונים לכל עובד בחודש הנוכחי.
+                <strong>הוראות:</strong> בחר חודש והזן את הנתונים המשתנים - יעדים, פרמיום ותיקונים.<br>
+                ניתן גם להוריד תבנית אקסל, למלא אותה ולהעלות חזרה.
+            </div>
+
+            <!-- בחירת חודש עברי -->
+            <h3>תקופת חישוב</h3>
+            <div class="setting-group">
+                <div class="setting-row">
+                    <label>חודש:</label>
+                    <select id="currentMonth" onchange="saveSettings()">
+                        <option value="1">תשרי</option>
+                        <option value="2">חשוון</option>
+                        <option value="3">כסלו</option>
+                        <option value="4">טבת</option>
+                        <option value="5">שבט</option>
+                        <option value="6">אדר</option>
+                        <option value="7">ניסן</option>
+                        <option value="8">אייר</option>
+                        <option value="9">סיוון</option>
+                        <option value="10">תמוז</option>
+                        <option value="11">אב</option>
+                        <option value="12">אלול</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>שנה:</label>
+                    <input type="text" id="currentYear" value="תשפ״ה" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <!-- ייבוא/ייצוא אקסל -->
+            <h3>ייבוא/ייצוא נתונים חודשיים</h3>
+            <div class="setting-group">
+                <button class="btn-primary" onclick="downloadExcelTemplate()">הורד תבנית אקסל</button>
+                <button class="btn-success" onclick="document.getElementById('importExcelFile').click()">ייבא מאקסל</button>
+                <input type="file" id="importExcelFile" accept=".csv" style="display:none" onchange="importFromExcel(event)">
             </div>
 
             <div id="monthlyDataList"></div>
@@ -556,6 +573,7 @@
                 monthlyData[employee.id] = {
                     premiumRegular: 0,
                     premiumDiscount: 0,
+                    premiumTotal: 0,
                     cleaningRevenue: 0,
                     repairRevenue: 0
                 };
@@ -644,7 +662,7 @@
 
         function updateMonthlyData(empId, field, value) {
             if (!monthlyData[empId]) {
-                monthlyData[empId] = { premiumRegular: 0, premiumDiscount: 0, cleaningRevenue: 0, repairRevenue: 0 };
+                monthlyData[empId] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
             }
             monthlyData[empId][field] = parseFloat(value) || 0;
             saveMonthlyData();
@@ -658,9 +676,31 @@
             }
 
             container.innerHTML = employees.map(emp => {
-                const data = monthlyData[emp.id] || { premiumRegular: 0, premiumDiscount: 0, cleaningRevenue: 0, repairRevenue: 0 };
+                const data = monthlyData[emp.id] || { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
                 const empStore = stores.find(s => s.id === emp.storeId);
                 const storeName = empStore ? empStore.name : 'לא משויך';
+
+                const premiumSection = emp.type === 'manager' ? `
+                    <div class="setting-group">
+                        <h4>מוצרי פרמיום שנמכרו</h4>
+                        <div class="setting-row">
+                            <label>לקוחות רגילים (יח'):</label>
+                            <input type="number" value="${data.premiumRegular || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumRegular', this.value)">
+                        </div>
+                        <div class="setting-row">
+                            <label>לקוחות בהנחה (יח'):</label>
+                            <input type="number" value="${data.premiumDiscount || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumDiscount', this.value)">
+                        </div>
+                    </div>
+                ` : `
+                    <div class="setting-group">
+                        <h4>מוצרי פרמיום שנמכרו</h4>
+                        <div class="setting-row">
+                            <label>סה"כ פרמיום (יח'):</label>
+                            <input type="number" value="${data.premiumTotal || 0}" onchange="updateMonthlyData(${emp.id}, 'premiumTotal', this.value)">
+                        </div>
+                    </div>
+                `;
 
                 return `
                     <div class="employee-card">
@@ -671,26 +711,16 @@
                             </span>
                         </div>
                         <div class="grid-2">
-                            <div class="setting-group">
-                                <h4>מוצרי פרמיום שנמכרו</h4>
-                                <div class="setting-row">
-                                    <label>לקוחות רגילים (יח'):</label>
-                                    <input type="number" value="${data.premiumRegular}" onchange="updateMonthlyData(${emp.id}, 'premiumRegular', this.value)">
-                                </div>
-                                <div class="setting-row">
-                                    <label>לקוחות בהנחה (יח'):</label>
-                                    <input type="number" value="${data.premiumDiscount}" onchange="updateMonthlyData(${emp.id}, 'premiumDiscount', this.value)">
-                                </div>
-                            </div>
+                            ${premiumSection}
                             <div class="setting-group">
                                 <h4>תיקונים</h4>
                                 <div class="setting-row">
                                     <label>הכנסות ניקוי (ש"ח):</label>
-                                    <input type="number" value="${data.cleaningRevenue}" onchange="updateMonthlyData(${emp.id}, 'cleaningRevenue', this.value)">
+                                    <input type="number" value="${data.cleaningRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'cleaningRevenue', this.value)">
                                 </div>
                                 <div class="setting-row">
                                     <label>תיקונים אחרים (ש"ח):</label>
-                                    <input type="number" value="${data.repairRevenue}" onchange="updateMonthlyData(${emp.id}, 'repairRevenue', this.value)">
+                                    <input type="number" value="${data.repairRevenue || 0}" onchange="updateMonthlyData(${emp.id}, 'repairRevenue', this.value)">
                                 </div>
                             </div>
                         </div>
@@ -782,10 +812,11 @@
                         }
                     }
 
-                    // Premium products for employees
-                    const premBonus = ((data.premiumRegular || 0) + (data.premiumDiscount || 0)) * (settings.employeePremiumBonus || 0);
+                    // Premium products for employees (no distinction between regular/discount)
+                    const premCount = data.premiumTotal || 0;
+                    const premBonus = premCount * (settings.employeePremiumBonus || 0);
                     if (premBonus > 0) {
-                        bonusDetails.push({ desc: `פרמיום (${(data.premiumRegular || 0) + (data.premiumDiscount || 0)} יח')`, amount: premBonus });
+                        bonusDetails.push({ desc: `פרמיום (${premCount} יח')`, amount: premBonus });
                         totalBonus += premBonus;
                     }
                 }
@@ -909,6 +940,172 @@
 
         function printReport() {
             window.print();
+        }
+
+        // Backup and Restore
+        function saveBackup() {
+            const backup = {
+                version: 1,
+                date: new Date().toISOString(),
+                settings: settings,
+                stores: stores,
+                employees: employees,
+                monthlyData: monthlyData
+            };
+
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const monthName = hebrewMonths[(settings.currentMonth || 1) - 1];
+            link.download = `גיבוי_בונוסים_${monthName}_${settings.currentYear || ''}.json`;
+            link.click();
+        }
+
+        function loadBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backup = JSON.parse(e.target.result);
+
+                    if (backup.settings) {
+                        settings = backup.settings;
+                        localStorage.setItem('bonusSettings', JSON.stringify(settings));
+                        Object.keys(settings).forEach(key => {
+                            const el = document.getElementById(key);
+                            if (el) el.value = settings[key];
+                        });
+                    }
+                    if (backup.stores) {
+                        stores = backup.stores;
+                        localStorage.setItem('bonusStores', JSON.stringify(stores));
+                    }
+                    if (backup.employees) {
+                        employees = backup.employees;
+                        localStorage.setItem('bonusEmployees', JSON.stringify(employees));
+                    }
+                    if (backup.monthlyData) {
+                        monthlyData = backup.monthlyData;
+                        localStorage.setItem('bonusMonthlyData', JSON.stringify(monthlyData));
+                    }
+
+                    renderStores();
+                    renderEmployees();
+                    renderMonthlyData();
+                    alert('הגיבוי נטען בהצלחה!');
+                } catch (err) {
+                    alert('שגיאה בטעינת הקובץ: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // Excel Template Download and Import
+        function downloadExcelTemplate() {
+            let csv = '\uFEFF'; // BOM for Hebrew support
+            csv += 'סוג,מזהה,שם,סניף,יעד_כספי,מכירות_בפועל,יעד_כובעים,כובעים_בפועל,פרמיום_רגיל,פרמיום_הנחה,פרמיום_סהכ,הכנסות_ניקוי,תיקונים_אחרים\n';
+
+            // Add stores
+            stores.forEach(store => {
+                csv += `סניף,${store.id},"${store.name}",,${store.financialTarget},${store.currentSales},${store.hatTarget},${store.hatsSold},,,,, \n`;
+            });
+
+            // Add employees
+            employees.forEach(emp => {
+                const data = monthlyData[emp.id] || {};
+                const empStore = stores.find(s => s.id === emp.storeId);
+                const storeName = empStore ? empStore.name : '';
+
+                if (emp.type === 'manager') {
+                    csv += `מנהל,${emp.id},"${emp.name}","${storeName}",,,,,"${data.premiumRegular || 0}","${data.premiumDiscount || 0}",,${data.cleaningRevenue || 0},${data.repairRevenue || 0}\n`;
+                } else {
+                    csv += `עובד,${emp.id},"${emp.name}","${storeName}",,,,,,,${data.premiumTotal || 0},${data.cleaningRevenue || 0},${data.repairRevenue || 0}\n`;
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const monthName = hebrewMonths[(settings.currentMonth || 1) - 1];
+            link.download = `תבנית_נתונים_${monthName}_${settings.currentYear || ''}.csv`;
+            link.click();
+        }
+
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split('\n').filter(line => line.trim());
+
+                    // Skip header
+                    for (let i = 1; i < lines.length; i++) {
+                        const cols = parseCSVLine(lines[i]);
+                        if (cols.length < 3) continue;
+
+                        const type = cols[0].trim();
+                        const id = parseInt(cols[1]);
+
+                        if (type === 'סניף') {
+                            const store = stores.find(s => s.id === id);
+                            if (store) {
+                                store.financialTarget = parseFloat(cols[4]) || 0;
+                                store.currentSales = parseFloat(cols[5]) || 0;
+                                store.hatTarget = parseFloat(cols[6]) || 0;
+                                store.hatsSold = parseFloat(cols[7]) || 0;
+                            }
+                        } else if (type === 'מנהל' || type === 'עובד') {
+                            if (!monthlyData[id]) {
+                                monthlyData[id] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
+                            }
+                            if (type === 'מנהל') {
+                                monthlyData[id].premiumRegular = parseFloat(cols[8]) || 0;
+                                monthlyData[id].premiumDiscount = parseFloat(cols[9]) || 0;
+                            } else {
+                                monthlyData[id].premiumTotal = parseFloat(cols[10]) || 0;
+                            }
+                            monthlyData[id].cleaningRevenue = parseFloat(cols[11]) || 0;
+                            monthlyData[id].repairRevenue = parseFloat(cols[12]) || 0;
+                        }
+                    }
+
+                    saveStoresData();
+                    saveMonthlyData();
+                    renderStores();
+                    renderMonthlyData();
+                    alert('הנתונים יובאו בהצלחה!');
+                } catch (err) {
+                    alert('שגיאה בייבוא: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
         }
     </script>
 </body>
