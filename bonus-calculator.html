@@ -26,31 +26,11 @@
             padding: 30px;
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-        }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; font-size: 2.5em; }
+        h2 { color: #667eea; border-bottom: 3px solid #667eea; padding-bottom: 10px; margin-top: 40px; }
+        h3 { color: #555; margin-top: 25px; }
 
-        h2 {
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-            margin-top: 40px;
-        }
-
-        h3 {
-            color: #555;
-            margin-top: 25px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 
         .tab-btn {
             padding: 12px 24px;
@@ -63,393 +43,142 @@
             transition: all 0.3s;
         }
 
-        .tab-btn:hover {
-            background: #d0d0d0;
-        }
+        .tab-btn:hover { background: #d0d0d0; }
+        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-        .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        th, td { padding: 15px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; }
+        tr:hover { background: #f8f9ff; }
 
-        .tab-content {
-            display: none;
-        }
+        input, select { padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; width: 100%; transition: border-color 0.3s; }
+        input:focus, select:focus { outline: none; border-color: #667eea; }
+        input[type="number"] { text-align: left; direction: ltr; }
 
-        .tab-content.active {
-            display: block;
-        }
+        button { padding: 12px 24px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s; margin: 5px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102,126,234,0.4); }
+        .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(17,153,142,0.4); }
+        .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white; }
+        .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(235,51,73,0.4); }
+        .btn-info { background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%); color: white; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+        .setting-group { background: #f8f9ff; padding: 20px; border-radius: 15px; margin: 20px 0; }
+        .setting-row { display: flex; align-items: center; gap: 15px; margin: 10px 0; flex-wrap: wrap; }
+        .setting-row label { min-width: 200px; font-weight: bold; color: #555; }
+        .setting-row input { max-width: 150px; }
 
-        th, td {
-            padding: 15px;
-            text-align: right;
-            border-bottom: 1px solid #eee;
-        }
+        .employee-card { background: #f8f9ff; border-radius: 15px; padding: 20px; margin: 15px 0; border-right: 5px solid #667eea; }
+        .employee-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .employee-name { font-size: 1.3em; font-weight: bold; color: #333; }
+        .employee-type { padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+        .type-manager { background: #667eea; color: white; }
+        .type-employee { background: #11998e; color: white; }
 
-        th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: bold;
-        }
+        .bonus-summary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin: 20px 0; text-align: center; }
+        .bonus-total { font-size: 3em; font-weight: bold; margin: 10px 0; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .info-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 10px; padding: 15px; margin: 15px 0; }
 
-        tr:hover {
-            background: #f8f9ff;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; }
+        .close-btn:hover { color: #333; }
+        .form-group { margin: 15px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
 
-        input, select {
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            width: 100%;
-            transition: border-color 0.3s;
-        }
+        .report-section { background: #f8f9ff; border-radius: 15px; padding: 20px; margin: 15px 0; }
+        .report-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+        .report-item:last-child { border-bottom: none; }
+        .amount { font-weight: bold; color: #11998e; }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        input[type="number"] {
-            text-align: left;
-            direction: ltr;
-        }
-
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            margin: 5px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(17,153,142,0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(235,51,73,0.4);
-        }
-
-        .btn-info {
-            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
-            color: white;
-        }
-
-        .setting-group {
-            background: #f8f9ff;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-        }
-
-        .setting-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 10px 0;
-            flex-wrap: wrap;
-        }
-
-        .setting-row label {
-            min-width: 200px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .setting-row input {
-            max-width: 150px;
-        }
-
-        .employee-card {
-            background: #f8f9ff;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            border-right: 5px solid #667eea;
-        }
-
-        .employee-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .employee-name {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .employee-type {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .type-manager {
-            background: #667eea;
-            color: white;
-        }
-
-        .type-employee {
-            background: #11998e;
-            color: white;
-        }
-
-        .bonus-summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .bonus-total {
-            font-size: 3em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .info-box {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .success-box {
-            background: #d4edda;
-            border: 1px solid #28a745;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .close-btn:hover {
-            color: #333;
-        }
-
-        .form-group {
-            margin: 15px 0;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-group input {
-            width: auto;
-        }
-
-        .report-section {
-            background: #f8f9ff;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-        }
-
-        .report-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px dashed #ddd;
-        }
-
-        .report-item:last-child {
-            border-bottom: none;
-        }
-
-        .amount {
-            font-weight: bold;
-            color: #11998e;
-        }
-
-        .amount.negative {
-            color: #eb3349;
-        }
+        .data-input-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin: 10px 0; align-items: center; }
+        .data-input-row label { font-weight: bold; }
+        .data-input-row input { max-width: 120px; }
 
         @media print {
-            body {
-                background: white;
-            }
-            .container {
-                box-shadow: none;
-            }
-            .tabs, button {
-                display: none;
-            }
-            .tab-content {
-                display: block !important;
-            }
+            body { background: white; }
+            .container { box-shadow: none; }
+            .tabs, button { display: none; }
+            .tab-content { display: block !important; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏆 מחשבון בונוסים לעובדים</h1>
+        <h1>מחשבון בונוסים לעובדים</h1>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('settings')">⚙️ הגדרות</button>
-            <button class="tab-btn" onclick="showTab('stores')">🏪 סניפים</button>
-            <button class="tab-btn" onclick="showTab('employees')">👥 עובדים</button>
-            <button class="tab-btn" onclick="showTab('calculate')">🧮 חישוב בונוסים</button>
-            <button class="tab-btn" onclick="showTab('report')">📋 דוח וייצוא</button>
+            <button class="tab-btn active" onclick="showTab('settings')">הגדרות</button>
+            <button class="tab-btn" onclick="showTab('stores')">סניפים</button>
+            <button class="tab-btn" onclick="showTab('employees')">עובדים</button>
+            <button class="tab-btn" onclick="showTab('monthlyData')">נתונים חודשיים</button>
+            <button class="tab-btn" onclick="showTab('calculate')">חישוב בונוסים</button>
+            <button class="tab-btn" onclick="showTab('report')">דוח וייצוא</button>
         </div>
 
         <!-- הגדרות -->
         <div id="settings" class="tab-content active">
-            <h2>⚙️ הגדרות כלליות</h2>
+            <h2>הגדרות כלליות</h2>
 
             <div class="info-box">
-                <strong>💡 הוראות:</strong> כאן מגדירים רק את ברירות המחדל לפרמיום ואחוזי תיקונים.<br>
-                כל שאר הבונוסים מוגדרים אישית לכל עובד/מנהל בלשונית "עובדים".
+                <strong>הוראות:</strong> כאן מגדירים את ברירות המחדל לפרמיום ואחוזי תיקונים.<br>
+                הבונוסים האישיים לכל עובד/מנהל מוגדרים בלשונית "עובדים".
             </div>
 
-            <!-- בחירת חודש -->
-            <h3>📅 תקופת חישוב</h3>
+            <!-- בחירת חודש עברי -->
+            <h3>תקופת חישוב</h3>
             <div class="setting-group">
                 <div class="setting-row">
                     <label>חודש:</label>
                     <select id="currentMonth" onchange="saveSettings()">
-                        <option value="1">ינואר</option>
-                        <option value="2">פברואר</option>
-                        <option value="3">מרץ</option>
-                        <option value="4">אפריל</option>
-                        <option value="5">מאי</option>
-                        <option value="6">יוני</option>
-                        <option value="7">יולי</option>
-                        <option value="8">אוגוסט</option>
-                        <option value="9">ספטמבר</option>
-                        <option value="10">אוקטובר</option>
-                        <option value="11">נובמבר</option>
-                        <option value="12">דצמבר</option>
+                        <option value="1">תשרי</option>
+                        <option value="2">חשוון</option>
+                        <option value="3">כסלו</option>
+                        <option value="4">טבת</option>
+                        <option value="5">שבט</option>
+                        <option value="6">אדר</option>
+                        <option value="7">ניסן</option>
+                        <option value="8">אייר</option>
+                        <option value="9">סיוון</option>
+                        <option value="10">תמוז</option>
+                        <option value="11">אב</option>
+                        <option value="12">אלול</option>
                     </select>
                 </div>
                 <div class="setting-row">
                     <label>שנה:</label>
-                    <input type="number" id="currentYear" value="2024" onchange="saveSettings()">
+                    <input type="text" id="currentYear" value="תשפ״ה" onchange="saveSettings()">
                 </div>
             </div>
 
             <!-- בונוס פרמיום -->
-            <h3>⭐ בונוס מוצרים פרמיום (ברירת מחדל)</h3>
+            <h3>בונוס מוצרים פרמיום (ברירת מחדל)</h3>
             <div class="setting-group">
                 <h4>מנהלים:</h4>
                 <div class="setting-row">
-                    <label>בונוס פרמיום - לקוח רגיל (₪):</label>
+                    <label>בונוס פרמיום - לקוח רגיל (ש"ח):</label>
                     <input type="number" id="managerPremiumRegular" value="50" onchange="saveSettings()">
                 </div>
                 <div class="setting-row">
-                    <label>בונוס פרמיום - לקוח בהנחה (₪):</label>
+                    <label>בונוס פרמיום - לקוח בהנחה (ש"ח):</label>
                     <input type="number" id="managerPremiumDiscount" value="30" onchange="saveSettings()">
                 </div>
 
                 <h4>עובדים:</h4>
                 <div class="setting-row">
-                    <label>בונוס פרמיום לעובד (₪):</label>
+                    <label>בונוס פרמיום לעובד (ש"ח):</label>
                     <input type="number" id="employeePremiumBonus" value="25" onchange="saveSettings()">
                 </div>
             </div>
 
             <!-- בונוס תיקונים -->
-            <h3>🔧 בונוס תיקונים</h3>
+            <h3>בונוס תיקונים</h3>
             <div class="setting-group">
                 <div class="setting-row">
                     <label>אחוז מפעולות ניקוי (%):</label>
@@ -461,52 +190,61 @@
                 </div>
             </div>
 
-            <button class="btn-primary" onclick="saveSettings()">💾 שמור הגדרות</button>
-            <button class="btn-danger" onclick="resetSettings()">🔄 אפס להגדרות ברירת מחדל</button>
+            <button class="btn-primary" onclick="saveSettings()">שמור הגדרות</button>
+            <button class="btn-danger" onclick="resetSettings()">אפס להגדרות ברירת מחדל</button>
         </div>
 
         <!-- סניפים -->
         <div id="stores" class="tab-content">
-            <h2>🏪 ניהול סניפים</h2>
+            <h2>ניהול סניפים</h2>
 
             <div class="info-box">
-                <strong>💡 הוראות:</strong> הגדר את הסניפים והיעדים שלהם. כל סניף יכול להיות עם יעדים שונים.
+                <strong>הוראות:</strong> הגדר יעדים לכל סניף. היעדים משתנים כל חודש - עדכן אותם בהתאם.
             </div>
-
-            <button class="btn-success" onclick="showAddStoreModal()">➕ הוסף סניף חדש</button>
 
             <div id="storesList"></div>
         </div>
 
         <!-- עובדים -->
         <div id="employees" class="tab-content">
-            <h2>👥 ניהול עובדים</h2>
+            <h2>ניהול עובדים</h2>
 
-            <button class="btn-success" onclick="showAddEmployeeModal()">➕ הוסף עובד חדש</button>
+            <button class="btn-success" onclick="showAddEmployeeModal()">הוסף עובד חדש</button>
 
             <div id="employeesList"></div>
         </div>
 
+        <!-- נתונים חודשיים -->
+        <div id="monthlyData" class="tab-content">
+            <h2>נתונים חודשיים</h2>
+
+            <div class="info-box">
+                <strong>הוראות:</strong> הזן כאן כמה מוצרי פרמיום נמכרו ותיקונים לכל עובד בחודש הנוכחי.
+            </div>
+
+            <div id="monthlyDataList"></div>
+        </div>
+
         <!-- חישוב בונוסים -->
         <div id="calculate" class="tab-content">
-            <h2>🧮 חישוב בונוסים</h2>
+            <h2>חישוב בונוסים</h2>
 
-            <button class="btn-primary" onclick="calculateAllBonuses()">🔄 חשב בונוסים</button>
+            <button class="btn-primary" onclick="calculateAllBonuses()">חשב בונוסים</button>
 
             <div id="calculationResults"></div>
         </div>
 
         <!-- דוח וייצוא -->
         <div id="report" class="tab-content">
-            <h2>📋 דוח סיכום וייצוא</h2>
+            <h2>דוח סיכום וייצוא</h2>
 
             <div class="bonus-summary" id="totalSummary">
                 <div>סה"כ בונוסים לתשלום</div>
-                <div class="bonus-total" id="grandTotal">₪0</div>
+                <div class="bonus-total" id="grandTotal">0 ש"ח</div>
             </div>
 
-            <button class="btn-success" onclick="exportToExcel()">📥 ייצוא לאקסל</button>
-            <button class="btn-info" onclick="printReport()">🖨️ הדפס דוח</button>
+            <button class="btn-success" onclick="exportToExcel()">ייצוא לאקסל</button>
+            <button class="btn-info" onclick="printReport()">הדפס דוח</button>
 
             <div id="finalReport"></div>
         </div>
@@ -516,7 +254,7 @@
     <div id="employeeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">➕ הוסף עובד חדש</h3>
+                <h3 id="modalTitle">הוסף עובד חדש</h3>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
 
@@ -541,14 +279,9 @@
             </div>
 
             <div id="managerFields" style="display: none;">
-                <div class="form-group">
-                    <label>שם החנות:</label>
-                    <input type="text" id="empStore" placeholder="הכנס שם חנות">
-                </div>
-
                 <h4>הגדרות בונוס מנהל</h4>
                 <div class="form-group">
-                    <label>בונוס קבוע למנהל (₪):</label>
+                    <label>בונוס קבוע למנהל (ש"ח):</label>
                     <input type="number" id="empManagerFixedBonus" placeholder="סכום הבונוס הקבוע">
                 </div>
                 <div class="form-group">
@@ -556,124 +289,57 @@
                     <input type="number" id="empManagerRevenuePercent" step="0.1" placeholder="אחוז מההכנסות">
                 </div>
                 <div class="form-group">
-                    <label>בונוס מוצר פרמיום - לקוח רגיל (₪):</label>
+                    <label>בונוס פרמיום - לקוח רגיל (ש"ח):</label>
                     <input type="number" id="empManagerPremiumRegular" placeholder="השאר ריק לברירת מחדל">
                 </div>
                 <div class="form-group">
-                    <label>בונוס מוצר פרמיום - לקוח בהנחה (₪):</label>
+                    <label>בונוס פרמיום - לקוח בהנחה (ש"ח):</label>
                     <input type="number" id="empManagerPremiumDiscount" placeholder="השאר ריק לברירת מחדל">
                 </div>
             </div>
 
             <div id="employeeFields">
-            <h4>בונוסים אישיים - עמידה ביעד שנה שעברה</h4>
-            <div class="form-group">
-                <label>בונוס 95% (₪):</label>
-                <input type="number" id="empBonus95" placeholder="חובה להזין">
-            </div>
-            <div class="form-group">
-                <label>בונוס 100% (₪):</label>
-                <input type="number" id="empBonus100" placeholder="חובה להזין">
-            </div>
-            <div class="form-group">
-                <label>בונוס 105%+ (₪):</label>
-                <input type="number" id="empBonus105" placeholder="חובה להזין">
-            </div>
-
-            <h4>בונוסים אישיים - יעד כספי חודשי</h4>
-            <div class="form-group">
-                <label>בונוס יעד כספי 95% (₪):</label>
-                <input type="number" id="empFinBonus95" placeholder="חובה להזין">
-            </div>
-            <div class="form-group">
-                <label>בונוס יעד כספי 105% (₪):</label>
-                <input type="number" id="empFinBonus105" placeholder="חובה להזין">
-            </div>
-            <div class="form-group">
-                <label>בונוס יעד כספי 115%+ (₪):</label>
-                <input type="number" id="empFinBonus115" placeholder="חובה להזין">
+                <h4>בונוסים - עמידה ביעדים (כספי + כובעים)</h4>
+                <p style="color: #666; font-size: 14px;">אותו בונוס ניתן על כל יעד (כספי או כובעים) שהעובד עומד בו</p>
+                <div class="form-group">
+                    <label>בונוס 95% (ש"ח):</label>
+                    <input type="number" id="empBonus95" placeholder="חובה להזין">
+                </div>
+                <div class="form-group">
+                    <label>בונוס 105% (ש"ח):</label>
+                    <input type="number" id="empBonus105" placeholder="חובה להזין">
+                </div>
+                <div class="form-group">
+                    <label>בונוס 115%+ (ש"ח):</label>
+                    <input type="number" id="empBonus115" placeholder="חובה להזין">
+                </div>
             </div>
 
-            <h4>בונוסים אישיים - יעד כובעים</h4>
-            <div class="form-group">
-                <label>בונוס יעד כובעים 95% (₪):</label>
-                <input type="number" id="empHatBonus95" placeholder="חובה להזין">
-            </div>
-            <div class="form-group">
-                <label>בונוס יעד כובעים 105% (₪):</label>
-                <input type="number" id="empHatBonus105" placeholder="חובה להזין">
-            </div>
-            <div class="form-group">
-                <label>בונוס יעד כובעים 115%+ (₪):</label>
-                <input type="number" id="empHatBonus115" placeholder="חובה להזין">
-            </div>
-            </div>
-
-            <button class="btn-success" onclick="saveEmployee()">💾 שמור</button>
-            <button class="btn-danger" onclick="closeModal()">❌ ביטול</button>
-        </div>
-    </div>
-
-    <!-- מודל הוספת סניף -->
-    <div id="storeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="storeModalTitle">➕ הוסף סניף חדש</h3>
-                <button class="close-btn" onclick="closeStoreModal()">&times;</button>
-            </div>
-
-            <div class="form-group">
-                <label>שם הסניף:</label>
-                <input type="text" id="storeName" placeholder="הכנס שם סניף">
-            </div>
-
-            <h4>יעדים חודשיים</h4>
-            <div class="form-group">
-                <label>יעד כספי חודשי (₪):</label>
-                <input type="number" id="storeFinancialTarget" placeholder="יעד כספי">
-            </div>
-            <div class="form-group">
-                <label>יעד מכירת כובעים (יחידות):</label>
-                <input type="number" id="storeHatTarget" placeholder="יעד כובעים">
-            </div>
-
-            <h4>נתוני מכירות</h4>
-            <div class="form-group">
-                <label>מכירות חודש נוכחי (₪):</label>
-                <input type="number" id="storeCurrentSales" placeholder="סה״כ מכירות החודש">
-            </div>
-            <div class="form-group">
-                <label>כובעים שנמכרו החודש:</label>
-                <input type="number" id="storeHatsSold" placeholder="כמות כובעים שנמכרו">
-            </div>
-
-            <button class="btn-success" onclick="saveStore()">💾 שמור</button>
-            <button class="btn-danger" onclick="closeStoreModal()">❌ ביטול</button>
+            <button class="btn-success" onclick="saveEmployee()">שמור</button>
+            <button class="btn-danger" onclick="closeModal()">ביטול</button>
         </div>
     </div>
 
     <script>
+        // Hebrew months
+        const hebrewMonths = ['תשרי', 'חשוון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיוון', 'תמוז', 'אב', 'אלול'];
+
         // Data storage
         let employees = [];
         let stores = [];
         let settings = {};
-        let salesData = {};
+        let monthlyData = {}; // { empId: { premiumRegular, premiumDiscount, cleaningRevenue, repairRevenue } }
         let editingEmployeeId = null;
-        let editingStoreId = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             loadStores();
             loadEmployees();
-            loadSalesData();
+            loadMonthlyData();
             renderStores();
             renderEmployees();
-
-            // Set current month
-            const now = new Date();
-            document.getElementById('currentMonth').value = now.getMonth() + 1;
-            document.getElementById('currentYear').value = now.getFullYear();
+            renderMonthlyData();
         });
 
         // Tab navigation
@@ -683,12 +349,9 @@
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
 
-            if (tabId === 'stores') {
-                renderStores();
-            }
-            if (tabId === 'employees') {
-                renderEmployees();
-            }
+            if (tabId === 'stores') renderStores();
+            if (tabId === 'employees') renderEmployees();
+            if (tabId === 'monthlyData') renderMonthlyData();
         }
 
         // Settings management
@@ -700,7 +363,7 @@
                 cleaningPercent: parseFloat(document.getElementById('cleaningPercent').value) || 0,
                 repairPercent: parseFloat(document.getElementById('repairPercent').value) || 0,
                 currentMonth: parseInt(document.getElementById('currentMonth').value) || 1,
-                currentYear: parseInt(document.getElementById('currentYear').value) || 2024
+                currentYear: document.getElementById('currentYear').value || 'תשפ״ה'
             };
             localStorage.setItem('bonusSettings', JSON.stringify(settings));
         }
@@ -729,7 +392,6 @@
             if (saved) {
                 stores = JSON.parse(saved);
             }
-
             // Pre-create default stores if none exist
             if (stores.length === 0) {
                 const defaultStores = ['ירושלים', 'בני ברק', 'מודיעין עילית', 'בית שמש', 'אשדוד'];
@@ -751,87 +413,17 @@
             localStorage.setItem('bonusStores', JSON.stringify(stores));
         }
 
-        function showAddStoreModal() {
-            editingStoreId = null;
-            document.getElementById('storeModalTitle').textContent = '➕ הוסף סניף חדש';
-            document.getElementById('storeName').value = '';
-            document.getElementById('storeFinancialTarget').value = '';
-            document.getElementById('storeHatTarget').value = '';
-            document.getElementById('storeCurrentSales').value = '';
-            document.getElementById('storeHatsSold').value = '';
-            document.getElementById('storeModal').classList.add('active');
-        }
-
-        function editStore(id) {
+        function updateStore(id, field, value) {
             const store = stores.find(s => s.id === id);
-            if (!store) return;
-
-            editingStoreId = id;
-            document.getElementById('storeModalTitle').textContent = '✏️ ערוך סניף';
-            document.getElementById('storeName').value = store.name;
-            document.getElementById('storeFinancialTarget').value = store.financialTarget || '';
-            document.getElementById('storeHatTarget').value = store.hatTarget || '';
-            document.getElementById('storeCurrentSales').value = store.currentSales || '';
-            document.getElementById('storeHatsSold').value = store.hatsSold || '';
-            document.getElementById('storeModal').classList.add('active');
-        }
-
-        function closeStoreModal() {
-            document.getElementById('storeModal').classList.remove('active');
-        }
-
-        function saveStore() {
-            const name = document.getElementById('storeName').value.trim();
-            if (!name) {
-                alert('יש להזין שם סניף');
-                return;
-            }
-
-            const store = {
-                id: editingStoreId || Date.now(),
-                name: name,
-                financialTarget: parseFloat(document.getElementById('storeFinancialTarget').value) || 0,
-                hatTarget: parseFloat(document.getElementById('storeHatTarget').value) || 0,
-                currentSales: parseFloat(document.getElementById('storeCurrentSales').value) || 0,
-                hatsSold: parseFloat(document.getElementById('storeHatsSold').value) || 0
-            };
-
-            if (editingStoreId) {
-                const index = stores.findIndex(s => s.id === editingStoreId);
-                stores[index] = store;
-            } else {
-                stores.push(store);
-            }
-
-            saveStoresData();
-            closeStoreModal();
-            renderStores();
-            renderEmployees(); // Update employee dropdowns
-        }
-
-        function deleteStore(id) {
-            if (confirm('האם אתה בטוח שברצונך למחוק סניף זה?')) {
-                stores = stores.filter(s => s.id !== id);
-                // Remove store reference from employees
-                employees.forEach(emp => {
-                    if (emp.storeId === id) {
-                        emp.storeId = null;
-                    }
-                });
+            if (store) {
+                store[field] = parseFloat(value) || 0;
                 saveStoresData();
-                localStorage.setItem('bonusEmployees', JSON.stringify(employees));
                 renderStores();
-                renderEmployees();
             }
         }
 
         function renderStores() {
             const container = document.getElementById('storesList');
-            if (stores.length === 0) {
-                container.innerHTML = '<div class="info-box">אין סניפים במערכת. לחץ על "הוסף סניף חדש" להתחיל.</div>';
-                return;
-            }
-
             container.innerHTML = stores.map(store => {
                 const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100).toFixed(1) : 0;
                 const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100).toFixed(1) : 0;
@@ -840,22 +432,34 @@
                 return `
                     <div class="employee-card">
                         <div class="employee-header">
-                            <span class="employee-name">🏪 ${store.name}</span>
+                            <span class="employee-name">${store.name}</span>
                             <span class="employee-type type-manager">${storeEmployees.length} עובדים</span>
                         </div>
                         <div class="grid-2">
-                            <div>
-                                <strong>יעד כספי:</strong> ₪${store.financialTarget.toLocaleString()}<br>
-                                <strong>מכירות:</strong> ₪${store.currentSales.toLocaleString()} (${finPercent}%)
+                            <div class="setting-group">
+                                <h4>יעד כספי</h4>
+                                <div class="setting-row">
+                                    <label>יעד (ש"ח):</label>
+                                    <input type="number" value="${store.financialTarget}" onchange="updateStore(${store.id}, 'financialTarget', this.value)">
+                                </div>
+                                <div class="setting-row">
+                                    <label>בפועל (ש"ח):</label>
+                                    <input type="number" value="${store.currentSales}" onchange="updateStore(${store.id}, 'currentSales', this.value)">
+                                </div>
+                                <div><strong>עמידה:</strong> ${finPercent}%</div>
                             </div>
-                            <div>
-                                <strong>יעד כובעים:</strong> ${store.hatTarget} יח'<br>
-                                <strong>נמכרו:</strong> ${store.hatsSold} יח' (${hatPercent}%)
+                            <div class="setting-group">
+                                <h4>יעד כובעים</h4>
+                                <div class="setting-row">
+                                    <label>יעד (יח'):</label>
+                                    <input type="number" value="${store.hatTarget}" onchange="updateStore(${store.id}, 'hatTarget', this.value)">
+                                </div>
+                                <div class="setting-row">
+                                    <label>בפועל (יח'):</label>
+                                    <input type="number" value="${store.hatsSold}" onchange="updateStore(${store.id}, 'hatsSold', this.value)">
+                                </div>
+                                <div><strong>עמידה:</strong> ${hatPercent}%</div>
                             </div>
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <button class="btn-primary" onclick="editStore(${store.id})">✏️ ערוך</button>
-                            <button class="btn-danger" onclick="deleteStore(${store.id})">🗑️ מחק</button>
                         </div>
                     </div>
                 `;
@@ -874,20 +478,13 @@
         // Employee management
         function showAddEmployeeModal() {
             editingEmployeeId = null;
-            document.getElementById('modalTitle').textContent = '➕ הוסף עובד חדש';
+            document.getElementById('modalTitle').textContent = 'הוסף עובד חדש';
             document.getElementById('empName').value = '';
             document.getElementById('empType').value = 'employee';
             document.getElementById('empStoreId').innerHTML = getStoreSelectOptions(null);
-            document.getElementById('empStore').value = '';
             document.getElementById('empBonus95').value = '';
-            document.getElementById('empBonus100').value = '';
             document.getElementById('empBonus105').value = '';
-            document.getElementById('empFinBonus95').value = '';
-            document.getElementById('empFinBonus105').value = '';
-            document.getElementById('empFinBonus115').value = '';
-            document.getElementById('empHatBonus95').value = '';
-            document.getElementById('empHatBonus105').value = '';
-            document.getElementById('empHatBonus115').value = '';
+            document.getElementById('empBonus115').value = '';
             document.getElementById('empManagerFixedBonus').value = '';
             document.getElementById('empManagerRevenuePercent').value = '';
             document.getElementById('empManagerPremiumRegular').value = '';
@@ -901,20 +498,13 @@
             if (!emp) return;
 
             editingEmployeeId = id;
-            document.getElementById('modalTitle').textContent = '✏️ ערוך עובד';
+            document.getElementById('modalTitle').textContent = 'ערוך עובד';
             document.getElementById('empName').value = emp.name;
             document.getElementById('empType').value = emp.type;
             document.getElementById('empStoreId').innerHTML = getStoreSelectOptions(emp.storeId);
-            document.getElementById('empStore').value = emp.store || '';
             document.getElementById('empBonus95').value = emp.bonus95 || '';
-            document.getElementById('empBonus100').value = emp.bonus100 || '';
             document.getElementById('empBonus105').value = emp.bonus105 || '';
-            document.getElementById('empFinBonus95').value = emp.finBonus95 || '';
-            document.getElementById('empFinBonus105').value = emp.finBonus105 || '';
-            document.getElementById('empFinBonus115').value = emp.finBonus115 || '';
-            document.getElementById('empHatBonus95').value = emp.hatBonus95 || '';
-            document.getElementById('empHatBonus105').value = emp.hatBonus105 || '';
-            document.getElementById('empHatBonus115').value = emp.hatBonus115 || '';
+            document.getElementById('empBonus115').value = emp.bonus115 || '';
             document.getElementById('empManagerFixedBonus').value = emp.managerFixedBonus || '';
             document.getElementById('empManagerRevenuePercent').value = emp.managerRevenuePercent || '';
             document.getElementById('empManagerPremiumRegular').value = emp.managerPremiumRegular || '';
@@ -946,19 +536,10 @@
                 name: name,
                 type: document.getElementById('empType').value,
                 storeId: storeIdVal ? parseInt(storeIdVal) : null,
-                store: document.getElementById('empStore').value.trim(),
-                // Employee bonuses - year over year
+                // Employee bonuses (one set for both targets)
                 bonus95: parseFloat(document.getElementById('empBonus95').value) || null,
-                bonus100: parseFloat(document.getElementById('empBonus100').value) || null,
                 bonus105: parseFloat(document.getElementById('empBonus105').value) || null,
-                // Employee bonuses - financial target
-                finBonus95: parseFloat(document.getElementById('empFinBonus95').value) || null,
-                finBonus105: parseFloat(document.getElementById('empFinBonus105').value) || null,
-                finBonus115: parseFloat(document.getElementById('empFinBonus115').value) || null,
-                // Employee bonuses - hat target
-                hatBonus95: parseFloat(document.getElementById('empHatBonus95').value) || null,
-                hatBonus105: parseFloat(document.getElementById('empHatBonus105').value) || null,
-                hatBonus115: parseFloat(document.getElementById('empHatBonus115').value) || null,
+                bonus115: parseFloat(document.getElementById('empBonus115').value) || null,
                 // Manager bonuses
                 managerFixedBonus: parseFloat(document.getElementById('empManagerFixedBonus').value) || null,
                 managerRevenuePercent: parseFloat(document.getElementById('empManagerRevenuePercent').value) || null,
@@ -971,14 +552,8 @@
                 employees[index] = employee;
             } else {
                 employees.push(employee);
-                // Initialize sales data for new employee
-                salesData[employee.id] = {
-                    lastYearSales: 0,
-                    currentYearSales: 0,
-                    financialTarget: 0,
-                    financialActual: 0,
-                    hatTarget: 0,
-                    hatActual: 0,
+                // Initialize monthly data for new employee
+                monthlyData[employee.id] = {
                     premiumRegular: 0,
                     premiumDiscount: 0,
                     cleaningRevenue: 0,
@@ -987,18 +562,20 @@
             }
 
             localStorage.setItem('bonusEmployees', JSON.stringify(employees));
-            localStorage.setItem('bonusSalesData', JSON.stringify(salesData));
+            saveMonthlyData();
             closeModal();
             renderEmployees();
+            renderMonthlyData();
         }
 
         function deleteEmployee(id) {
             if (confirm('האם אתה בטוח שברצונך למחוק עובד זה?')) {
                 employees = employees.filter(e => e.id !== id);
-                delete salesData[id];
+                delete monthlyData[id];
                 localStorage.setItem('bonusEmployees', JSON.stringify(employees));
-                localStorage.setItem('bonusSalesData', JSON.stringify(salesData));
+                saveMonthlyData();
                 renderEmployees();
+                renderMonthlyData();
             }
         }
 
@@ -1018,59 +595,108 @@
 
             container.innerHTML = employees.map(emp => {
                 const empStore = stores.find(s => s.id === emp.storeId);
-                const storeName = empStore ? empStore.name : (emp.store || 'לא משויך');
+                const storeName = empStore ? empStore.name : 'לא משויך';
                 return `
                     <div class="employee-card">
                         <div class="employee-header">
                             <span class="employee-name">${emp.name}</span>
                             <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
-                                ${emp.type === 'manager' ? '👔 מנהל' : '👷 עובד'}
+                                ${emp.type === 'manager' ? 'מנהל' : 'עובד'}
                             </span>
                         </div>
-                        <div>🏪 סניף: ${storeName}</div>
+                        <div>סניף: ${storeName}</div>
                         ${emp.type === 'manager' ? `
                             <div style="margin-top: 10px;">
                                 <strong>הגדרות מנהל:</strong><br>
-                                בונוס קבוע: ${emp.managerFixedBonus ? '₪' + emp.managerFixedBonus : 'לא הוגדר'} |
+                                בונוס קבוע: ${emp.managerFixedBonus ? emp.managerFixedBonus + ' ש"ח' : 'לא הוגדר'} |
                                 אחוז מהכנסות: ${emp.managerRevenuePercent ? emp.managerRevenuePercent + '%' : 'לא הוגדר'}<br>
-                                פרמיום רגיל: ${emp.managerPremiumRegular ? '₪' + emp.managerPremiumRegular : 'ברירת מחדל'} |
-                                פרמיום הנחה: ${emp.managerPremiumDiscount ? '₪' + emp.managerPremiumDiscount : 'ברירת מחדל'}
+                                פרמיום רגיל: ${emp.managerPremiumRegular ? emp.managerPremiumRegular + ' ש"ח' : 'ברירת מחדל'} |
+                                פרמיום הנחה: ${emp.managerPremiumDiscount ? emp.managerPremiumDiscount + ' ש"ח' : 'ברירת מחדל'}
                             </div>
                         ` : `
                             <div style="margin-top: 10px;">
-                                <strong>בונוסים - שנה שעברה:</strong>
-                                95%: ${emp.bonus95 ? '₪' + emp.bonus95 : 'לא הוגדר'} |
-                                100%: ${emp.bonus100 ? '₪' + emp.bonus100 : 'לא הוגדר'} |
-                                105%+: ${emp.bonus105 ? '₪' + emp.bonus105 : 'לא הוגדר'}
-                            </div>
-                            <div style="margin-top: 5px;">
-                                <strong>בונוסים - יעד כספי:</strong>
-                                95%: ${emp.finBonus95 ? '₪' + emp.finBonus95 : 'לא הוגדר'} |
-                                105%: ${emp.finBonus105 ? '₪' + emp.finBonus105 : 'לא הוגדר'} |
-                                115%+: ${emp.finBonus115 ? '₪' + emp.finBonus115 : 'לא הוגדר'}
-                            </div>
-                            <div style="margin-top: 5px;">
-                                <strong>בונוסים - יעד כובעים:</strong>
-                                95%: ${emp.hatBonus95 ? '₪' + emp.hatBonus95 : 'לא הוגדר'} |
-                                105%: ${emp.hatBonus105 ? '₪' + emp.hatBonus105 : 'לא הוגדר'} |
-                                115%+: ${emp.hatBonus115 ? '₪' + emp.hatBonus115 : 'לא הוגדר'}
+                                <strong>בונוסים (כספי + כובעים):</strong>
+                                95%: ${emp.bonus95 ? emp.bonus95 + ' ש"ח' : 'לא הוגדר'} |
+                                105%: ${emp.bonus105 ? emp.bonus105 + ' ש"ח' : 'לא הוגדר'} |
+                                115%+: ${emp.bonus115 ? emp.bonus115 + ' ש"ח' : 'לא הוגדר'}
                             </div>
                         `}
                         <div style="margin-top: 10px;">
-                            <button class="btn-primary" onclick="editEmployee(${emp.id})">✏️ ערוך</button>
-                            <button class="btn-danger" onclick="deleteEmployee(${emp.id})">🗑️ מחק</button>
+                            <button class="btn-primary" onclick="editEmployee(${emp.id})">ערוך</button>
+                            <button class="btn-danger" onclick="deleteEmployee(${emp.id})">מחק</button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Sales data management
-        function loadSalesData() {
-            const saved = localStorage.getItem('bonusSalesData');
+        // Monthly data management
+        function loadMonthlyData() {
+            const saved = localStorage.getItem('bonusMonthlyData');
             if (saved) {
-                salesData = JSON.parse(saved);
+                monthlyData = JSON.parse(saved);
             }
+        }
+
+        function saveMonthlyData() {
+            localStorage.setItem('bonusMonthlyData', JSON.stringify(monthlyData));
+        }
+
+        function updateMonthlyData(empId, field, value) {
+            if (!monthlyData[empId]) {
+                monthlyData[empId] = { premiumRegular: 0, premiumDiscount: 0, cleaningRevenue: 0, repairRevenue: 0 };
+            }
+            monthlyData[empId][field] = parseFloat(value) || 0;
+            saveMonthlyData();
+        }
+
+        function renderMonthlyData() {
+            const container = document.getElementById('monthlyDataList');
+            if (employees.length === 0) {
+                container.innerHTML = '<div class="info-box">יש להוסיף עובדים תחילה בלשונית "עובדים".</div>';
+                return;
+            }
+
+            container.innerHTML = employees.map(emp => {
+                const data = monthlyData[emp.id] || { premiumRegular: 0, premiumDiscount: 0, cleaningRevenue: 0, repairRevenue: 0 };
+                const empStore = stores.find(s => s.id === emp.storeId);
+                const storeName = empStore ? empStore.name : 'לא משויך';
+
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header">
+                            <span class="employee-name">${emp.name}</span>
+                            <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
+                                ${emp.type === 'manager' ? 'מנהל' : 'עובד'} - ${storeName}
+                            </span>
+                        </div>
+                        <div class="grid-2">
+                            <div class="setting-group">
+                                <h4>מוצרי פרמיום שנמכרו</h4>
+                                <div class="setting-row">
+                                    <label>לקוחות רגילים (יח'):</label>
+                                    <input type="number" value="${data.premiumRegular}" onchange="updateMonthlyData(${emp.id}, 'premiumRegular', this.value)">
+                                </div>
+                                <div class="setting-row">
+                                    <label>לקוחות בהנחה (יח'):</label>
+                                    <input type="number" value="${data.premiumDiscount}" onchange="updateMonthlyData(${emp.id}, 'premiumDiscount', this.value)">
+                                </div>
+                            </div>
+                            <div class="setting-group">
+                                <h4>תיקונים</h4>
+                                <div class="setting-row">
+                                    <label>הכנסות ניקוי (ש"ח):</label>
+                                    <input type="number" value="${data.cleaningRevenue}" onchange="updateMonthlyData(${emp.id}, 'cleaningRevenue', this.value)">
+                                </div>
+                                <div class="setting-row">
+                                    <label>תיקונים אחרים (ש"ח):</label>
+                                    <input type="number" value="${data.repairRevenue}" onchange="updateMonthlyData(${emp.id}, 'repairRevenue', this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Bonus calculation
@@ -1081,125 +707,99 @@
             let grandTotal = 0;
 
             employees.forEach(emp => {
-                const data = salesData[emp.id] || {};
+                const data = monthlyData[emp.id] || {};
                 const bonusDetails = [];
                 let totalBonus = 0;
 
-                if (emp.type === 'manager') {
-                    // Get store data for this manager
-                    const mgrStore = stores.find(s => s.id === emp.storeId);
-                    const storeName = mgrStore ? mgrStore.name : '';
+                const empStore = stores.find(s => s.id === emp.storeId);
 
-                    // 1.1 Fixed manager bonus (individual per manager)
+                if (emp.type === 'manager') {
+                    const storeName = empStore ? empStore.name : '';
+
+                    // 1. Fixed manager bonus
                     const fixedBonus = emp.managerFixedBonus || 0;
                     if (fixedBonus > 0) {
                         bonusDetails.push({ desc: 'בונוס קבוע למנהל', amount: fixedBonus });
                         totalBonus += fixedBonus;
                     }
 
-                    // 1.2 Revenue percentage if store met target (individual per manager)
+                    // 2. Revenue percentage if store met target
                     const revenuePercent = emp.managerRevenuePercent || 0;
-                    if (revenuePercent > 0 && mgrStore) {
-                        // Check if store met its target
-                        const storeMetTarget = mgrStore.financialTarget > 0 && mgrStore.currentSales >= mgrStore.financialTarget;
+                    if (revenuePercent > 0 && empStore) {
+                        const storeMetTarget = empStore.financialTarget > 0 && empStore.currentSales >= empStore.financialTarget;
                         if (storeMetTarget) {
-                            const revenueBonus = mgrStore.currentSales * (revenuePercent / 100);
+                            const revenueBonus = empStore.currentSales * (revenuePercent / 100);
                             bonusDetails.push({ desc: `${revenuePercent}% מהכנסות ${storeName} (עמידה ביעד)`, amount: revenueBonus });
                             totalBonus += revenueBonus;
                         }
                     }
 
-                    // 1.3 Premium products (individual or default)
-                    const premRegRate = emp.managerPremiumRegular || settings.managerPremiumRegular;
-                    const premDiscRate = emp.managerPremiumDiscount || settings.managerPremiumDiscount;
-                    const premRegBonus = data.premiumRegular * premRegRate;
-                    const premDiscBonus = data.premiumDiscount * premDiscRate;
+                    // 3. Premium products
+                    const premRegRate = emp.managerPremiumRegular || settings.managerPremiumRegular || 0;
+                    const premDiscRate = emp.managerPremiumDiscount || settings.managerPremiumDiscount || 0;
+                    const premRegBonus = (data.premiumRegular || 0) * premRegRate;
+                    const premDiscBonus = (data.premiumDiscount || 0) * premDiscRate;
                     if (premRegBonus > 0) {
-                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות רגילים (${data.premiumRegular} יח' × ₪${premRegRate})`, amount: premRegBonus });
+                        bonusDetails.push({ desc: `פרמיום רגיל (${data.premiumRegular} x ${premRegRate} ש"ח)`, amount: premRegBonus });
                         totalBonus += premRegBonus;
                     }
                     if (premDiscBonus > 0) {
-                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות בהנחה (${data.premiumDiscount} יח' × ₪${premDiscRate})`, amount: premDiscBonus });
+                        bonusDetails.push({ desc: `פרמיום הנחה (${data.premiumDiscount} x ${premDiscRate} ש"ח)`, amount: premDiscBonus });
                         totalBonus += premDiscBonus;
                     }
                 } else {
                     // Employee bonuses
 
-                    // Get store data for this employee
-                    const empStore = stores.find(s => s.id === emp.storeId);
+                    // Financial target bonus
+                    if (empStore && empStore.financialTarget > 0 && emp.bonus95) {
+                        const finPercent = (empStore.currentSales / empStore.financialTarget) * 100;
 
-                    // 2.1 Year-over-year comparison (individual bonuses)
-                    if (data.lastYearSales > 0 && emp.bonus95) {
-                        const yoyPercent = (data.currentYearSales / data.lastYearSales) * 100;
-
-                        if (yoyPercent >= 105 && emp.bonus105) {
-                            bonusDetails.push({ desc: `עמידה ביעד שנה שעברה (${yoyPercent.toFixed(1)}% - 105%+)`, amount: emp.bonus105 });
+                        if (finPercent >= 115 && emp.bonus115) {
+                            bonusDetails.push({ desc: `יעד כספי ${empStore.name} (${finPercent.toFixed(1)}% - 115%+)`, amount: emp.bonus115 });
+                            totalBonus += emp.bonus115;
+                        } else if (finPercent >= 105 && emp.bonus105) {
+                            bonusDetails.push({ desc: `יעד כספי ${empStore.name} (${finPercent.toFixed(1)}% - 105%)`, amount: emp.bonus105 });
                             totalBonus += emp.bonus105;
-                        } else if (yoyPercent >= 100 && emp.bonus100) {
-                            bonusDetails.push({ desc: `עמידה ביעד שנה שעברה (${yoyPercent.toFixed(1)}% - 100%)`, amount: emp.bonus100 });
-                            totalBonus += emp.bonus100;
-                        } else if (yoyPercent >= 95 && emp.bonus95) {
-                            bonusDetails.push({ desc: `עמידה ביעד שנה שעברה (${yoyPercent.toFixed(1)}% - 95%)`, amount: emp.bonus95 });
+                        } else if (finPercent >= 95 && emp.bonus95) {
+                            bonusDetails.push({ desc: `יעד כספי ${empStore.name} (${finPercent.toFixed(1)}% - 95%)`, amount: emp.bonus95 });
                             totalBonus += emp.bonus95;
                         }
                     }
 
-                    // 2.2 Financial target - use store target (individual bonuses)
-                    const finTarget = empStore ? empStore.financialTarget : 0;
-                    const finActual = empStore ? empStore.currentSales : 0;
-                    if (finTarget > 0 && emp.finBonus95) {
-                        const finPercent = (finActual / finTarget) * 100;
-                        const storeInfo = empStore ? ` (${empStore.name})` : '';
+                    // Hat target bonus (same amounts)
+                    if (empStore && empStore.hatTarget > 0 && emp.bonus95) {
+                        const hatPercent = (empStore.hatsSold / empStore.hatTarget) * 100;
 
-                        if (finPercent >= 115 && emp.finBonus115) {
-                            bonusDetails.push({ desc: `יעד כספי${storeInfo} (${finPercent.toFixed(1)}% - 115%+)`, amount: emp.finBonus115 });
-                            totalBonus += emp.finBonus115;
-                        } else if (finPercent >= 105 && emp.finBonus105) {
-                            bonusDetails.push({ desc: `יעד כספי${storeInfo} (${finPercent.toFixed(1)}% - 105%)`, amount: emp.finBonus105 });
-                            totalBonus += emp.finBonus105;
-                        } else if (finPercent >= 95 && emp.finBonus95) {
-                            bonusDetails.push({ desc: `יעד כספי${storeInfo} (${finPercent.toFixed(1)}% - 95%)`, amount: emp.finBonus95 });
-                            totalBonus += emp.finBonus95;
+                        if (hatPercent >= 115 && emp.bonus115) {
+                            bonusDetails.push({ desc: `יעד כובעים ${empStore.name} (${hatPercent.toFixed(1)}% - 115%+)`, amount: emp.bonus115 });
+                            totalBonus += emp.bonus115;
+                        } else if (hatPercent >= 105 && emp.bonus105) {
+                            bonusDetails.push({ desc: `יעד כובעים ${empStore.name} (${hatPercent.toFixed(1)}% - 105%)`, amount: emp.bonus105 });
+                            totalBonus += emp.bonus105;
+                        } else if (hatPercent >= 95 && emp.bonus95) {
+                            bonusDetails.push({ desc: `יעד כובעים ${empStore.name} (${hatPercent.toFixed(1)}% - 95%)`, amount: emp.bonus95 });
+                            totalBonus += emp.bonus95;
                         }
                     }
 
-                    // 2.3 Hat target - use store target (individual bonuses)
-                    const hatTarget = empStore ? empStore.hatTarget : 0;
-                    const hatActual = empStore ? empStore.hatsSold : 0;
-                    if (hatTarget > 0 && emp.hatBonus95) {
-                        const hatPercent = (hatActual / hatTarget) * 100;
-                        const storeInfo = empStore ? ` (${empStore.name})` : '';
-
-                        if (hatPercent >= 115 && emp.hatBonus115) {
-                            bonusDetails.push({ desc: `יעד כובעים${storeInfo} (${hatPercent.toFixed(1)}% - 115%+)`, amount: emp.hatBonus115 });
-                            totalBonus += emp.hatBonus115;
-                        } else if (hatPercent >= 105 && emp.hatBonus105) {
-                            bonusDetails.push({ desc: `יעד כובעים${storeInfo} (${hatPercent.toFixed(1)}% - 105%)`, amount: emp.hatBonus105 });
-                            totalBonus += emp.hatBonus105;
-                        } else if (hatPercent >= 95 && emp.hatBonus95) {
-                            bonusDetails.push({ desc: `יעד כובעים${storeInfo} (${hatPercent.toFixed(1)}% - 95%)`, amount: emp.hatBonus95 });
-                            totalBonus += emp.hatBonus95;
-                        }
-                    }
-
-                    // 2.3 Premium products for employees
-                    const premBonus = (data.premiumRegular + data.premiumDiscount) * settings.employeePremiumBonus;
+                    // Premium products for employees
+                    const premBonus = ((data.premiumRegular || 0) + (data.premiumDiscount || 0)) * (settings.employeePremiumBonus || 0);
                     if (premBonus > 0) {
-                        bonusDetails.push({ desc: `מוצרים פרמיום (${data.premiumRegular + data.premiumDiscount} יח')`, amount: premBonus });
+                        bonusDetails.push({ desc: `פרמיום (${(data.premiumRegular || 0) + (data.premiumDiscount || 0)} יח')`, amount: premBonus });
                         totalBonus += premBonus;
                     }
                 }
 
-                // 3. Repair bonuses (for all)
-                const cleaningBonus = data.cleaningRevenue * (settings.cleaningPercent / 100);
-                const repairBonus = data.repairRevenue * (settings.repairPercent / 100);
+                // Repair bonuses (for all)
+                const cleaningBonus = (data.cleaningRevenue || 0) * ((settings.cleaningPercent || 0) / 100);
+                const repairBonus = (data.repairRevenue || 0) * ((settings.repairPercent || 0) / 100);
 
                 if (cleaningBonus > 0) {
-                    bonusDetails.push({ desc: `${settings.cleaningPercent}% מפעולות ניקוי (₪${data.cleaningRevenue})`, amount: cleaningBonus });
+                    bonusDetails.push({ desc: `${settings.cleaningPercent}% מניקוי (${data.cleaningRevenue} ש"ח)`, amount: cleaningBonus });
                     totalBonus += cleaningBonus;
                 }
                 if (repairBonus > 0) {
-                    bonusDetails.push({ desc: `${settings.repairPercent}% מתיקונים אחרים (₪${data.repairRevenue})`, amount: repairBonus });
+                    bonusDetails.push({ desc: `${settings.repairPercent}% מתיקונים (${data.repairRevenue} ש"ח)`, amount: repairBonus });
                     totalBonus += repairBonus;
                 }
 
@@ -1218,13 +818,13 @@
                 <div class="employee-card">
                     <div class="employee-header">
                         <span class="employee-name">${r.employee.name}</span>
-                        <span class="amount" style="font-size: 1.5em;">סה"כ: ₪${r.total.toFixed(2)}</span>
+                        <span class="amount" style="font-size: 1.5em;">סה"כ: ${r.total.toFixed(2)} ש"ח</span>
                     </div>
                     <div class="report-section">
                         ${r.details.length > 0 ? r.details.map(d => `
                             <div class="report-item">
                                 <span>${d.desc}</span>
-                                <span class="amount">₪${d.amount.toFixed(2)}</span>
+                                <span class="amount">${d.amount.toFixed(2)} ש"ח</span>
                             </div>
                         `).join('') : '<div>לא זכאי לבונוסים בחודש זה</div>'}
                     </div>
@@ -1232,24 +832,21 @@
             `).join('');
 
             // Update grand total
-            document.getElementById('grandTotal').textContent = `₪${grandTotal.toFixed(2)}`;
+            document.getElementById('grandTotal').textContent = `${grandTotal.toFixed(2)} ש"ח`;
 
             // Store results for export
             window.calculationResults = results;
             window.grandTotal = grandTotal;
 
-            // Generate final report
             generateFinalReport(results, grandTotal);
         }
 
         function generateFinalReport(results, grandTotal) {
             const container = document.getElementById('finalReport');
-            const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-                              'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            const monthName = hebrewMonths[(settings.currentMonth || 1) - 1];
 
             container.innerHTML = `
-                <h3>📊 דוח בונוסים - ${monthNames[settings.currentMonth - 1]} ${settings.currentYear}</h3>
-
+                <h3>דוח בונוסים - ${monthName} ${settings.currentYear || ''}</h3>
                 <table>
                     <thead>
                         <tr>
@@ -1264,15 +861,13 @@
                             <tr>
                                 <td><strong>${r.employee.name}</strong></td>
                                 <td>${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}</td>
-                                <td>
-                                    ${r.details.map(d => `${d.desc}: ₪${d.amount.toFixed(2)}`).join('<br>') || 'אין בונוסים'}
-                                </td>
-                                <td class="amount"><strong>₪${r.total.toFixed(2)}</strong></td>
+                                <td>${r.details.map(d => `${d.desc}: ${d.amount.toFixed(2)} ש"ח`).join('<br>') || 'אין בונוסים'}</td>
+                                <td class="amount"><strong>${r.total.toFixed(2)} ש"ח</strong></td>
                             </tr>
                         `).join('')}
                         <tr style="background: #f0f0f0;">
                             <td colspan="3"><strong>סה"כ לתשלום</strong></td>
-                            <td class="amount"><strong style="font-size: 1.2em;">₪${grandTotal.toFixed(2)}</strong></td>
+                            <td class="amount"><strong style="font-size: 1.2em;">${grandTotal.toFixed(2)} ש"ח</strong></td>
                         </tr>
                     </tbody>
                 </table>
@@ -1286,12 +881,10 @@
                 return;
             }
 
-            const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
-                              'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+            const monthName = hebrewMonths[(settings.currentMonth || 1) - 1];
 
-            // Build CSV content
-            let csv = '\uFEFF'; // BOM for Hebrew support
-            csv += `דוח בונוסים - ${monthNames[settings.currentMonth - 1]} ${settings.currentYear}\n\n`;
+            let csv = '\uFEFF';
+            csv += `דוח בונוסים - ${monthName} ${settings.currentYear || ''}\n\n`;
             csv += 'שם העובד,סוג,תיאור בונוס,סכום\n';
 
             window.calculationResults.forEach(r => {
@@ -1302,17 +895,15 @@
                 } else {
                     csv += `"${r.employee.name}","${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}","אין בונוסים",0\n`;
                 }
-                csv += `"${r.employee.name} - סה״כ","","",${r.total.toFixed(2)}\n`;
-                csv += '\n';
+                csv += `"${r.employee.name} - סה״כ","","",${r.total.toFixed(2)}\n\n`;
             });
 
             csv += `\n"סה״כ כללי","","",${window.grandTotal.toFixed(2)}\n`;
 
-            // Download
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `בונוסים_${monthNames[settings.currentMonth - 1]}_${settings.currentYear}.csv`;
+            link.download = `בונוסים_${monthName}_${settings.currentYear || ''}.csv`;
             link.click();
         }
 
