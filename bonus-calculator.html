@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחשבון בונוסים לעובדים</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #555;
+            margin-top: 25px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #f8f9ff;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="number"] {
+            text-align: left;
+            direction: ltr;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17,153,142,0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(235,51,73,0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            color: white;
+        }
+
+        .setting-group {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .setting-row label {
+            min-width: 200px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .setting-row input {
+            max-width: 150px;
+        }
+
+        .employee-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-right: 5px solid #667eea;
+        }
+
+        .employee-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .employee-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .employee-type {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .type-manager {
+            background: #667eea;
+            color: white;
+        }
+
+        .type-employee {
+            background: #11998e;
+            color: white;
+        }
+
+        .bonus-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .bonus-total {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+        }
+
+        .report-section {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .report-item:last-child {
+            border-bottom: none;
+        }
+
+        .amount {
+            font-weight: bold;
+            color: #11998e;
+        }
+
+        .amount.negative {
+            color: #eb3349;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .tabs, button {
+                display: none;
+            }
+            .tab-content {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 מחשבון בונוסים לעובדים</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('settings')">⚙️ הגדרות</button>
+            <button class="tab-btn" onclick="showTab('employees')">👥 עובדים</button>
+            <button class="tab-btn" onclick="showTab('sales')">📊 נתוני מכירות</button>
+            <button class="tab-btn" onclick="showTab('calculate')">🧮 חישוב בונוסים</button>
+            <button class="tab-btn" onclick="showTab('report')">📋 דוח וייצוא</button>
+        </div>
+
+        <!-- הגדרות -->
+        <div id="settings" class="tab-content active">
+            <h2>⚙️ הגדרות כלליות</h2>
+
+            <div class="info-box">
+                <strong>💡 הוראות:</strong> הגדר כאן את כל הסכומים והאחוזים הקבועים. ההגדרות יישמרו אוטומטית בדפדפן.
+            </div>
+
+            <!-- בונוס מנהלים -->
+            <h3>👔 בונוס מנהלים</h3>
+            <div class="setting-group">
+                <div class="setting-row">
+                    <label>בונוס קבוע למנהלים (₪):</label>
+                    <input type="number" id="managerFixedBonus" value="1000" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>אחוז מסה"כ הכנסות בעמידה ביעד (%):</label>
+                    <input type="number" id="managerRevenuePercent" value="2" step="0.1" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס מוצר פרמיום - לקוח רגיל (₪):</label>
+                    <input type="number" id="managerPremiumRegular" value="50" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס מוצר פרמיום - לקוח בהנחה (₪):</label>
+                    <input type="number" id="managerPremiumDiscount" value="30" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <!-- בונוס עובדים -->
+            <h3>👷 בונוס עובדים כלליים</h3>
+            <div class="setting-group">
+                <h4>עמידה ביעד שנה שעברה:</h4>
+                <div class="setting-row">
+                    <label>בונוס ברירת מחדל - עמידה ב-95% (₪):</label>
+                    <input type="number" id="employeeBonus95" value="200" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס ברירת מחדל - עמידה ב-100% (₪):</label>
+                    <input type="number" id="employeeBonus100" value="350" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס ברירת מחדל - עמידה ב-105%+ (₪):</label>
+                    <input type="number" id="employeeBonus105" value="500" onchange="saveSettings()">
+                </div>
+
+                <h4>עמידה ביעד כספי חודשי:</h4>
+                <div class="setting-row">
+                    <label>בונוס יעד כספי - 95% (₪):</label>
+                    <input type="number" id="financialBonus95" value="150" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס יעד כספי - 105% (₪):</label>
+                    <input type="number" id="financialBonus105" value="250" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס יעד כספי - 115%+ (₪):</label>
+                    <input type="number" id="financialBonus115" value="400" onchange="saveSettings()">
+                </div>
+
+                <h4>עמידה ביעד מכירת כובעים:</h4>
+                <div class="setting-row">
+                    <label>בונוס יעד כובעים - 95% (₪):</label>
+                    <input type="number" id="hatBonus95" value="100" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס יעד כובעים - 105% (₪):</label>
+                    <input type="number" id="hatBonus105" value="180" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>בונוס יעד כובעים - 115%+ (₪):</label>
+                    <input type="number" id="hatBonus115" value="300" onchange="saveSettings()">
+                </div>
+
+                <h4>מוצרים פרמיום:</h4>
+                <div class="setting-row">
+                    <label>בונוס מוצר פרמיום לעובד (₪):</label>
+                    <input type="number" id="employeePremiumBonus" value="25" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <!-- בונוס תיקונים -->
+            <h3>🔧 בונוס תיקונים</h3>
+            <div class="setting-group">
+                <div class="setting-row">
+                    <label>אחוז מפעולות ניקוי (%):</label>
+                    <input type="number" id="cleaningPercent" value="10" step="0.1" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>אחוז משאר התיקונים (%):</label>
+                    <input type="number" id="repairPercent" value="5" step="0.1" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="saveSettings()">💾 שמור הגדרות</button>
+            <button class="btn-danger" onclick="resetSettings()">🔄 אפס להגדרות ברירת מחדל</button>
+        </div>
+
+        <!-- עובדים -->
+        <div id="employees" class="tab-content">
+            <h2>👥 ניהול עובדים</h2>
+
+            <button class="btn-success" onclick="showAddEmployeeModal()">➕ הוסף עובד חדש</button>
+
+            <div id="employeesList"></div>
+        </div>
+
+        <!-- נתוני מכירות -->
+        <div id="sales" class="tab-content">
+            <h2>📊 נתוני מכירות</h2>
+
+            <div class="info-box">
+                <strong>💡 הוראות:</strong> הזן את נתוני המכירות לכל עובד. הנתונים יישמרו אוטומטית.
+            </div>
+
+            <div class="setting-group">
+                <h3>נתוני חודש נוכחי</h3>
+                <div class="setting-row">
+                    <label>חודש:</label>
+                    <select id="currentMonth" onchange="saveSettings()">
+                        <option value="1">ינואר</option>
+                        <option value="2">פברואר</option>
+                        <option value="3">מרץ</option>
+                        <option value="4">אפריל</option>
+                        <option value="5">מאי</option>
+                        <option value="6">יוני</option>
+                        <option value="7">יולי</option>
+                        <option value="8">אוגוסט</option>
+                        <option value="9">ספטמבר</option>
+                        <option value="10">אוקטובר</option>
+                        <option value="11">נובמבר</option>
+                        <option value="12">דצמבר</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label>שנה:</label>
+                    <input type="number" id="currentYear" value="2024" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <h3>יעדים כלליים</h3>
+            <div class="setting-group">
+                <div class="setting-row">
+                    <label>יעד כספי חודש קודם (₪):</label>
+                    <input type="number" id="lastMonthTarget" value="100000" onchange="saveSettings()">
+                </div>
+                <div class="setting-row">
+                    <label>סה"כ הכנסות חודש נוכחי (₪):</label>
+                    <input type="number" id="currentMonthRevenue" value="0" onchange="saveSettings()">
+                </div>
+            </div>
+
+            <h3>📈 נתוני מכירות לעובדים</h3>
+            <div id="salesDataList"></div>
+        </div>
+
+        <!-- חישוב בונוסים -->
+        <div id="calculate" class="tab-content">
+            <h2>🧮 חישוב בונוסים</h2>
+
+            <button class="btn-primary" onclick="calculateAllBonuses()">🔄 חשב בונוסים</button>
+
+            <div id="calculationResults"></div>
+        </div>
+
+        <!-- דוח וייצוא -->
+        <div id="report" class="tab-content">
+            <h2>📋 דוח סיכום וייצוא</h2>
+
+            <div class="bonus-summary" id="totalSummary">
+                <div>סה"כ בונוסים לתשלום</div>
+                <div class="bonus-total" id="grandTotal">₪0</div>
+            </div>
+
+            <button class="btn-success" onclick="exportToExcel()">📥 ייצוא לאקסל</button>
+            <button class="btn-info" onclick="printReport()">🖨️ הדפס דוח</button>
+
+            <div id="finalReport"></div>
+        </div>
+    </div>
+
+    <!-- מודל הוספת עובד -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">➕ הוסף עובד חדש</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>שם העובד:</label>
+                <input type="text" id="empName" placeholder="הכנס שם מלא">
+            </div>
+
+            <div class="form-group">
+                <label>סוג עובד:</label>
+                <select id="empType" onchange="toggleManagerFields()">
+                    <option value="employee">עובד כללי</option>
+                    <option value="manager">מנהל</option>
+                </select>
+            </div>
+
+            <div id="managerFields" style="display: none;">
+                <div class="form-group">
+                    <label>שם החנות:</label>
+                    <input type="text" id="empStore" placeholder="הכנס שם חנות">
+                </div>
+            </div>
+
+            <h4>בונוסים אישיים (עמידה ביעד שנה שעברה)</h4>
+            <div class="form-group">
+                <label>בונוס 95% (₪):</label>
+                <input type="number" id="empBonus95" placeholder="השאר ריק לברירת מחדל">
+            </div>
+            <div class="form-group">
+                <label>בונוס 100% (₪):</label>
+                <input type="number" id="empBonus100" placeholder="השאר ריק לברירת מחדל">
+            </div>
+            <div class="form-group">
+                <label>בונוס 105%+ (₪):</label>
+                <input type="number" id="empBonus105" placeholder="השאר ריק לברירת מחדל">
+            </div>
+
+            <button class="btn-success" onclick="saveEmployee()">💾 שמור</button>
+            <button class="btn-danger" onclick="closeModal()">❌ ביטול</button>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let employees = [];
+        let settings = {};
+        let salesData = {};
+        let editingEmployeeId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadEmployees();
+            loadSalesData();
+            renderEmployees();
+            renderSalesData();
+
+            // Set current month
+            const now = new Date();
+            document.getElementById('currentMonth').value = now.getMonth() + 1;
+            document.getElementById('currentYear').value = now.getFullYear();
+        });
+
+        // Tab navigation
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabId === 'sales') {
+                renderSalesData();
+            }
+        }
+
+        // Settings management
+        function saveSettings() {
+            settings = {
+                managerFixedBonus: parseFloat(document.getElementById('managerFixedBonus').value) || 0,
+                managerRevenuePercent: parseFloat(document.getElementById('managerRevenuePercent').value) || 0,
+                managerPremiumRegular: parseFloat(document.getElementById('managerPremiumRegular').value) || 0,
+                managerPremiumDiscount: parseFloat(document.getElementById('managerPremiumDiscount').value) || 0,
+                employeeBonus95: parseFloat(document.getElementById('employeeBonus95').value) || 0,
+                employeeBonus100: parseFloat(document.getElementById('employeeBonus100').value) || 0,
+                employeeBonus105: parseFloat(document.getElementById('employeeBonus105').value) || 0,
+                financialBonus95: parseFloat(document.getElementById('financialBonus95').value) || 0,
+                financialBonus105: parseFloat(document.getElementById('financialBonus105').value) || 0,
+                financialBonus115: parseFloat(document.getElementById('financialBonus115').value) || 0,
+                hatBonus95: parseFloat(document.getElementById('hatBonus95').value) || 0,
+                hatBonus105: parseFloat(document.getElementById('hatBonus105').value) || 0,
+                hatBonus115: parseFloat(document.getElementById('hatBonus115').value) || 0,
+                employeePremiumBonus: parseFloat(document.getElementById('employeePremiumBonus').value) || 0,
+                cleaningPercent: parseFloat(document.getElementById('cleaningPercent').value) || 0,
+                repairPercent: parseFloat(document.getElementById('repairPercent').value) || 0,
+                lastMonthTarget: parseFloat(document.getElementById('lastMonthTarget').value) || 0,
+                currentMonthRevenue: parseFloat(document.getElementById('currentMonthRevenue').value) || 0,
+                currentMonth: parseInt(document.getElementById('currentMonth').value) || 1,
+                currentYear: parseInt(document.getElementById('currentYear').value) || 2024
+            };
+            localStorage.setItem('bonusSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const saved = localStorage.getItem('bonusSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                Object.keys(settings).forEach(key => {
+                    const el = document.getElementById(key);
+                    if (el) el.value = settings[key];
+                });
+            }
+        }
+
+        function resetSettings() {
+            if (confirm('האם אתה בטוח שברצונך לאפס את כל ההגדרות?')) {
+                localStorage.removeItem('bonusSettings');
+                location.reload();
+            }
+        }
+
+        // Employee management
+        function showAddEmployeeModal() {
+            editingEmployeeId = null;
+            document.getElementById('modalTitle').textContent = '➕ הוסף עובד חדש';
+            document.getElementById('empName').value = '';
+            document.getElementById('empType').value = 'employee';
+            document.getElementById('empStore').value = '';
+            document.getElementById('empBonus95').value = '';
+            document.getElementById('empBonus100').value = '';
+            document.getElementById('empBonus105').value = '';
+            toggleManagerFields();
+            document.getElementById('employeeModal').classList.add('active');
+        }
+
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+
+            editingEmployeeId = id;
+            document.getElementById('modalTitle').textContent = '✏️ ערוך עובד';
+            document.getElementById('empName').value = emp.name;
+            document.getElementById('empType').value = emp.type;
+            document.getElementById('empStore').value = emp.store || '';
+            document.getElementById('empBonus95').value = emp.bonus95 || '';
+            document.getElementById('empBonus100').value = emp.bonus100 || '';
+            document.getElementById('empBonus105').value = emp.bonus105 || '';
+            toggleManagerFields();
+            document.getElementById('employeeModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('employeeModal').classList.remove('active');
+        }
+
+        function toggleManagerFields() {
+            const isManager = document.getElementById('empType').value === 'manager';
+            document.getElementById('managerFields').style.display = isManager ? 'block' : 'none';
+        }
+
+        function saveEmployee() {
+            const name = document.getElementById('empName').value.trim();
+            if (!name) {
+                alert('יש להזין שם עובד');
+                return;
+            }
+
+            const employee = {
+                id: editingEmployeeId || Date.now(),
+                name: name,
+                type: document.getElementById('empType').value,
+                store: document.getElementById('empStore').value.trim(),
+                bonus95: parseFloat(document.getElementById('empBonus95').value) || null,
+                bonus100: parseFloat(document.getElementById('empBonus100').value) || null,
+                bonus105: parseFloat(document.getElementById('empBonus105').value) || null
+            };
+
+            if (editingEmployeeId) {
+                const index = employees.findIndex(e => e.id === editingEmployeeId);
+                employees[index] = employee;
+            } else {
+                employees.push(employee);
+                // Initialize sales data for new employee
+                salesData[employee.id] = {
+                    lastYearSales: 0,
+                    currentYearSales: 0,
+                    financialTarget: 0,
+                    financialActual: 0,
+                    hatTarget: 0,
+                    hatActual: 0,
+                    premiumRegular: 0,
+                    premiumDiscount: 0,
+                    cleaningRevenue: 0,
+                    repairRevenue: 0
+                };
+            }
+
+            localStorage.setItem('bonusEmployees', JSON.stringify(employees));
+            localStorage.setItem('bonusSalesData', JSON.stringify(salesData));
+            closeModal();
+            renderEmployees();
+            renderSalesData();
+        }
+
+        function deleteEmployee(id) {
+            if (confirm('האם אתה בטוח שברצונך למחוק עובד זה?')) {
+                employees = employees.filter(e => e.id !== id);
+                delete salesData[id];
+                localStorage.setItem('bonusEmployees', JSON.stringify(employees));
+                localStorage.setItem('bonusSalesData', JSON.stringify(salesData));
+                renderEmployees();
+                renderSalesData();
+            }
+        }
+
+        function loadEmployees() {
+            const saved = localStorage.getItem('bonusEmployees');
+            if (saved) {
+                employees = JSON.parse(saved);
+            }
+        }
+
+        function renderEmployees() {
+            const container = document.getElementById('employeesList');
+            if (employees.length === 0) {
+                container.innerHTML = '<div class="info-box">אין עובדים במערכת. לחץ על "הוסף עובד חדש" להתחיל.</div>';
+                return;
+            }
+
+            container.innerHTML = employees.map(emp => `
+                <div class="employee-card">
+                    <div class="employee-header">
+                        <span class="employee-name">${emp.name}</span>
+                        <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
+                            ${emp.type === 'manager' ? '👔 מנהל' : '👷 עובד'}
+                        </span>
+                    </div>
+                    ${emp.store ? `<div>🏪 חנות: ${emp.store}</div>` : ''}
+                    <div style="margin-top: 10px;">
+                        <strong>בונוסים אישיים:</strong>
+                        95%: ${emp.bonus95 ? '₪' + emp.bonus95 : 'ברירת מחדל'} |
+                        100%: ${emp.bonus100 ? '₪' + emp.bonus100 : 'ברירת מחדל'} |
+                        105%+: ${emp.bonus105 ? '₪' + emp.bonus105 : 'ברירת מחדל'}
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn-primary" onclick="editEmployee(${emp.id})">✏️ ערוך</button>
+                        <button class="btn-danger" onclick="deleteEmployee(${emp.id})">🗑️ מחק</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Sales data management
+        function loadSalesData() {
+            const saved = localStorage.getItem('bonusSalesData');
+            if (saved) {
+                salesData = JSON.parse(saved);
+            }
+        }
+
+        function saveSalesData() {
+            employees.forEach(emp => {
+                salesData[emp.id] = {
+                    lastYearSales: parseFloat(document.getElementById(`lastYear_${emp.id}`)?.value) || 0,
+                    currentYearSales: parseFloat(document.getElementById(`currentYear_${emp.id}`)?.value) || 0,
+                    financialTarget: parseFloat(document.getElementById(`finTarget_${emp.id}`)?.value) || 0,
+                    financialActual: parseFloat(document.getElementById(`finActual_${emp.id}`)?.value) || 0,
+                    hatTarget: parseFloat(document.getElementById(`hatTarget_${emp.id}`)?.value) || 0,
+                    hatActual: parseFloat(document.getElementById(`hatActual_${emp.id}`)?.value) || 0,
+                    premiumRegular: parseFloat(document.getElementById(`premReg_${emp.id}`)?.value) || 0,
+                    premiumDiscount: parseFloat(document.getElementById(`premDisc_${emp.id}`)?.value) || 0,
+                    cleaningRevenue: parseFloat(document.getElementById(`cleaning_${emp.id}`)?.value) || 0,
+                    repairRevenue: parseFloat(document.getElementById(`repair_${emp.id}`)?.value) || 0
+                };
+            });
+            localStorage.setItem('bonusSalesData', JSON.stringify(salesData));
+        }
+
+        function renderSalesData() {
+            const container = document.getElementById('salesDataList');
+            if (employees.length === 0) {
+                container.innerHTML = '<div class="info-box">יש להוסיף עובדים תחילה בלשונית "עובדים".</div>';
+                return;
+            }
+
+            container.innerHTML = employees.map(emp => {
+                const data = salesData[emp.id] || {};
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header">
+                            <span class="employee-name">${emp.name}</span>
+                            <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
+                                ${emp.type === 'manager' ? '👔 מנהל' : '👷 עובד'}
+                            </span>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="setting-group">
+                                <h4>📅 השוואה לשנה שעברה</h4>
+                                <div class="setting-row">
+                                    <label>מכירות שנה שעברה (₪):</label>
+                                    <input type="number" id="lastYear_${emp.id}" value="${data.lastYearSales || 0}" onchange="saveSalesData()">
+                                </div>
+                                <div class="setting-row">
+                                    <label>מכירות השנה (₪):</label>
+                                    <input type="number" id="currentYear_${emp.id}" value="${data.currentYearSales || 0}" onchange="saveSalesData()">
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h4>💰 יעד כספי חודשי</h4>
+                                <div class="setting-row">
+                                    <label>יעד (₪):</label>
+                                    <input type="number" id="finTarget_${emp.id}" value="${data.financialTarget || 0}" onchange="saveSalesData()">
+                                </div>
+                                <div class="setting-row">
+                                    <label>ביצוע בפועל (₪):</label>
+                                    <input type="number" id="finActual_${emp.id}" value="${data.financialActual || 0}" onchange="saveSalesData()">
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h4>🧢 יעד מכירת כובעים</h4>
+                                <div class="setting-row">
+                                    <label>יעד (יחידות):</label>
+                                    <input type="number" id="hatTarget_${emp.id}" value="${data.hatTarget || 0}" onchange="saveSalesData()">
+                                </div>
+                                <div class="setting-row">
+                                    <label>ביצוע בפועל (יחידות):</label>
+                                    <input type="number" id="hatActual_${emp.id}" value="${data.hatActual || 0}" onchange="saveSalesData()">
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h4>⭐ מוצרים פרמיום שנמכרו</h4>
+                                <div class="setting-row">
+                                    <label>לקוחות רגילים (יח'):</label>
+                                    <input type="number" id="premReg_${emp.id}" value="${data.premiumRegular || 0}" onchange="saveSalesData()">
+                                </div>
+                                <div class="setting-row">
+                                    <label>לקוחות בהנחה (יח'):</label>
+                                    <input type="number" id="premDisc_${emp.id}" value="${data.premiumDiscount || 0}" onchange="saveSalesData()">
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h4>🔧 תיקונים</h4>
+                                <div class="setting-row">
+                                    <label>הכנסות ניקוי (₪):</label>
+                                    <input type="number" id="cleaning_${emp.id}" value="${data.cleaningRevenue || 0}" onchange="saveSalesData()">
+                                </div>
+                                <div class="setting-row">
+                                    <label>הכנסות תיקונים אחרים (₪):</label>
+                                    <input type="number" id="repair_${emp.id}" value="${data.repairRevenue || 0}" onchange="saveSalesData()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Bonus calculation
+        function calculateAllBonuses() {
+            saveSettings();
+            saveSalesData();
+
+            const results = [];
+            let grandTotal = 0;
+
+            const metCompanyTarget = settings.currentMonthRevenue >= settings.lastMonthTarget;
+
+            employees.forEach(emp => {
+                const data = salesData[emp.id] || {};
+                const bonusDetails = [];
+                let totalBonus = 0;
+
+                if (emp.type === 'manager') {
+                    // 1.1 Fixed manager bonus
+                    const fixedBonus = settings.managerFixedBonus;
+                    bonusDetails.push({ desc: 'בונוס קבוע למנהל', amount: fixedBonus });
+                    totalBonus += fixedBonus;
+
+                    // 1.2 Revenue percentage if met target
+                    if (metCompanyTarget) {
+                        const revenueBonus = settings.currentMonthRevenue * (settings.managerRevenuePercent / 100);
+                        bonusDetails.push({ desc: `${settings.managerRevenuePercent}% מהכנסות (עמידה ביעד)`, amount: revenueBonus });
+                        totalBonus += revenueBonus;
+                    }
+
+                    // 1.3 Premium products
+                    const premRegBonus = data.premiumRegular * settings.managerPremiumRegular;
+                    const premDiscBonus = data.premiumDiscount * settings.managerPremiumDiscount;
+                    if (premRegBonus > 0) {
+                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות רגילים (${data.premiumRegular} יח')`, amount: premRegBonus });
+                        totalBonus += premRegBonus;
+                    }
+                    if (premDiscBonus > 0) {
+                        bonusDetails.push({ desc: `מוצרים פרמיום - לקוחות בהנחה (${data.premiumDiscount} יח')`, amount: premDiscBonus });
+                        totalBonus += premDiscBonus;
+                    }
+                } else {
+                    // Employee bonuses
+
+                    // 2.1 Year-over-year comparison
+                    if (data.lastYearSales > 0) {
+                        const yoyPercent = (data.currentYearSales / data.lastYearSales) * 100;
+                        const bonus95 = emp.bonus95 || settings.employeeBonus95;
+                        const bonus100 = emp.bonus100 || settings.employeeBonus100;
+                        const bonus105 = emp.bonus105 || settings.employeeBonus105;
+
+                        if (yoyPercent >= 105) {
+                            bonusDetails.push({ desc: `עמידה ביעד שנה שעברה (${yoyPercent.toFixed(1)}% - 105%+)`, amount: bonus105 });
+                            totalBonus += bonus105;
+                        } else if (yoyPercent >= 100) {
+                            bonusDetails.push({ desc: `עמידה ביעד שנה שעברה (${yoyPercent.toFixed(1)}% - 100%)`, amount: bonus100 });
+                            totalBonus += bonus100;
+                        } else if (yoyPercent >= 95) {
+                            bonusDetails.push({ desc: `עמידה ביעד שנה שעברה (${yoyPercent.toFixed(1)}% - 95%)`, amount: bonus95 });
+                            totalBonus += bonus95;
+                        }
+                    }
+
+                    // 2.2 Financial target
+                    if (data.financialTarget > 0) {
+                        const finPercent = (data.financialActual / data.financialTarget) * 100;
+
+                        if (finPercent >= 115) {
+                            bonusDetails.push({ desc: `יעד כספי (${finPercent.toFixed(1)}% - 115%+)`, amount: settings.financialBonus115 });
+                            totalBonus += settings.financialBonus115;
+                        } else if (finPercent >= 105) {
+                            bonusDetails.push({ desc: `יעד כספי (${finPercent.toFixed(1)}% - 105%)`, amount: settings.financialBonus105 });
+                            totalBonus += settings.financialBonus105;
+                        } else if (finPercent >= 95) {
+                            bonusDetails.push({ desc: `יעד כספי (${finPercent.toFixed(1)}% - 95%)`, amount: settings.financialBonus95 });
+                            totalBonus += settings.financialBonus95;
+                        }
+                    }
+
+                    // 2.2 Hat target
+                    if (data.hatTarget > 0) {
+                        const hatPercent = (data.hatActual / data.hatTarget) * 100;
+
+                        if (hatPercent >= 115) {
+                            bonusDetails.push({ desc: `יעד כובעים (${hatPercent.toFixed(1)}% - 115%+)`, amount: settings.hatBonus115 });
+                            totalBonus += settings.hatBonus115;
+                        } else if (hatPercent >= 105) {
+                            bonusDetails.push({ desc: `יעד כובעים (${hatPercent.toFixed(1)}% - 105%)`, amount: settings.hatBonus105 });
+                            totalBonus += settings.hatBonus105;
+                        } else if (hatPercent >= 95) {
+                            bonusDetails.push({ desc: `יעד כובעים (${hatPercent.toFixed(1)}% - 95%)`, amount: settings.hatBonus95 });
+                            totalBonus += settings.hatBonus95;
+                        }
+                    }
+
+                    // 2.3 Premium products for employees
+                    const premBonus = (data.premiumRegular + data.premiumDiscount) * settings.employeePremiumBonus;
+                    if (premBonus > 0) {
+                        bonusDetails.push({ desc: `מוצרים פרמיום (${data.premiumRegular + data.premiumDiscount} יח')`, amount: premBonus });
+                        totalBonus += premBonus;
+                    }
+                }
+
+                // 3. Repair bonuses (for all)
+                const cleaningBonus = data.cleaningRevenue * (settings.cleaningPercent / 100);
+                const repairBonus = data.repairRevenue * (settings.repairPercent / 100);
+
+                if (cleaningBonus > 0) {
+                    bonusDetails.push({ desc: `${settings.cleaningPercent}% מפעולות ניקוי (₪${data.cleaningRevenue})`, amount: cleaningBonus });
+                    totalBonus += cleaningBonus;
+                }
+                if (repairBonus > 0) {
+                    bonusDetails.push({ desc: `${settings.repairPercent}% מתיקונים אחרים (₪${data.repairRevenue})`, amount: repairBonus });
+                    totalBonus += repairBonus;
+                }
+
+                results.push({
+                    employee: emp,
+                    details: bonusDetails,
+                    total: totalBonus
+                });
+
+                grandTotal += totalBonus;
+            });
+
+            // Render results
+            const container = document.getElementById('calculationResults');
+            container.innerHTML = results.map(r => `
+                <div class="employee-card">
+                    <div class="employee-header">
+                        <span class="employee-name">${r.employee.name}</span>
+                        <span class="amount" style="font-size: 1.5em;">סה"כ: ₪${r.total.toFixed(2)}</span>
+                    </div>
+                    <div class="report-section">
+                        ${r.details.length > 0 ? r.details.map(d => `
+                            <div class="report-item">
+                                <span>${d.desc}</span>
+                                <span class="amount">₪${d.amount.toFixed(2)}</span>
+                            </div>
+                        `).join('') : '<div>לא זכאי לבונוסים בחודש זה</div>'}
+                    </div>
+                </div>
+            `).join('');
+
+            // Update grand total
+            document.getElementById('grandTotal').textContent = `₪${grandTotal.toFixed(2)}`;
+
+            // Store results for export
+            window.calculationResults = results;
+            window.grandTotal = grandTotal;
+
+            // Generate final report
+            generateFinalReport(results, grandTotal);
+        }
+
+        function generateFinalReport(results, grandTotal) {
+            const container = document.getElementById('finalReport');
+            const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+                              'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+
+            container.innerHTML = `
+                <h3>📊 דוח בונוסים - ${monthNames[settings.currentMonth - 1]} ${settings.currentYear}</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>שם העובד</th>
+                            <th>סוג</th>
+                            <th>פירוט בונוסים</th>
+                            <th>סה"כ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(r => `
+                            <tr>
+                                <td><strong>${r.employee.name}</strong></td>
+                                <td>${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}</td>
+                                <td>
+                                    ${r.details.map(d => `${d.desc}: ₪${d.amount.toFixed(2)}`).join('<br>') || 'אין בונוסים'}
+                                </td>
+                                <td class="amount"><strong>₪${r.total.toFixed(2)}</strong></td>
+                            </tr>
+                        `).join('')}
+                        <tr style="background: #f0f0f0;">
+                            <td colspan="3"><strong>סה"כ לתשלום</strong></td>
+                            <td class="amount"><strong style="font-size: 1.2em;">₪${grandTotal.toFixed(2)}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Excel export
+        function exportToExcel() {
+            if (!window.calculationResults) {
+                alert('יש לחשב בונוסים תחילה');
+                return;
+            }
+
+            const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+                              'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+
+            // Build CSV content
+            let csv = '\uFEFF'; // BOM for Hebrew support
+            csv += `דוח בונוסים - ${monthNames[settings.currentMonth - 1]} ${settings.currentYear}\n\n`;
+            csv += 'שם העובד,סוג,תיאור בונוס,סכום\n';
+
+            window.calculationResults.forEach(r => {
+                if (r.details.length > 0) {
+                    r.details.forEach(d => {
+                        csv += `"${r.employee.name}","${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}","${d.desc}",${d.amount.toFixed(2)}\n`;
+                    });
+                } else {
+                    csv += `"${r.employee.name}","${r.employee.type === 'manager' ? 'מנהל' : 'עובד'}","אין בונוסים",0\n`;
+                }
+                csv += `"${r.employee.name} - סה״כ","","",${r.total.toFixed(2)}\n`;
+                csv += '\n';
+            });
+
+            csv += `\n"סה״כ כללי","","",${window.grandTotal.toFixed(2)}\n`;
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `בונוסים_${monthNames[settings.currentMonth - 1]}_${settings.currentYear}.csv`;
+            link.click();
+        }
+
+        function printReport() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
