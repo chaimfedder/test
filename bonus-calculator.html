@@ -213,17 +213,11 @@
         <div id="monthlyData" class="tab-content">
             <h2>נתונים חודשיים</h2>
 
-            <div class="info-box">
-                <strong>הוראות:</strong> בחר חודש והזן את הנתונים המשתנים - יעדים, פרמיום ותיקונים.<br>
-                ניתן גם להוריד תבנית אקסל, למלא אותה ולהעלות חזרה.
-            </div>
-
-            <!-- בחירת חודש עברי -->
-            <h3>תקופת חישוב</h3>
-            <div class="setting-group">
-                <div class="setting-row">
-                    <label>חודש:</label>
-                    <select id="currentMonth" onchange="saveSettings()">
+            <!-- תקופה + ייבוא/ייצוא בשורה אחת -->
+            <div class="setting-group" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; padding:15px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <strong>חודש:</strong>
+                    <select id="currentMonth" onchange="saveSettings()" style="width:auto; padding:8px;">
                         <option value="1">תשרי</option>
                         <option value="2">חשוון</option>
                         <option value="3">כסלו</option>
@@ -237,17 +231,11 @@
                         <option value="11">אב</option>
                         <option value="12">אלול</option>
                     </select>
+                    <strong>שנה:</strong>
+                    <input type="text" id="currentYear" value="תשפ״ה" onchange="saveSettings()" style="width:80px; padding:8px;">
                 </div>
-                <div class="setting-row">
-                    <label>שנה:</label>
-                    <input type="text" id="currentYear" value="תשפ״ה" onchange="saveSettings()">
-                </div>
-            </div>
-
-            <!-- ייבוא/ייצוא אקסל -->
-            <h3>ייבוא/ייצוא נתונים חודשיים</h3>
-            <div class="setting-group">
-                <button class="btn-primary" onclick="downloadExcelTemplate()">הורד תבנית אקסל</button>
+                <div style="border-right:2px solid #ddd; height:30px;"></div>
+                <button class="btn-primary" onclick="downloadExcelTemplate()">הורד תבנית</button>
                 <button class="btn-success" onclick="document.getElementById('importExcelFile').click()">ייבא מאקסל</button>
                 <input type="file" id="importExcelFile" accept=".csv" style="display:none" onchange="importFromExcel(event)">
             </div>
@@ -646,43 +634,90 @@
                 return;
             }
 
-            container.innerHTML = employees.map(emp => {
-                const empStore = stores.find(s => s.id === emp.storeId);
-                const storeName = empStore ? empStore.name : 'לא משויך';
-                return `
-                    <div class="employee-card">
-                        <div class="employee-header">
-                            <span class="employee-name">${emp.name}</span>
-                            <span class="employee-type ${emp.type === 'manager' ? 'type-manager' : 'type-employee'}">
-                                ${emp.type === 'manager' ? 'מנהל' : 'עובד'}
-                            </span>
-                        </div>
-                        <div>סניף: ${storeName}</div>
-                        ${emp.type === 'manager' ? `
-                            <div style="margin-top: 10px;">
-                                <strong>הגדרות מנהל:</strong><br>
-                                בונוס קבוע: ${emp.managerFixedBonus ? emp.managerFixedBonus + ' ש"ח' : 'לא הוגדר'} |
-                                אחוז מהכנסות: ${emp.managerRevenuePercent ? emp.managerRevenuePercent + '%' : 'לא הוגדר'}<br>
-                                פרמיום רגיל: ${emp.managerPremiumRegular ? emp.managerPremiumRegular + ' ש"ח' : 'ברירת מחדל'} |
-                                פרמיום הנחה: ${emp.managerPremiumDiscount ? emp.managerPremiumDiscount + ' ש"ח' : 'ברירת מחדל'}<br>
-                                ניקוי: ${emp.managerCleaningPercent ? emp.managerCleaningPercent + '%' : 'ברירת מחדל'} |
-                                תיקונים: ${emp.managerRepairPercent ? emp.managerRepairPercent + '%' : 'ברירת מחדל'}
-                            </div>
-                        ` : `
-                            <div style="margin-top: 10px;">
-                                <strong>בונוסים (כספי + כובעים):</strong>
-                                95%: ${emp.bonus95 ? emp.bonus95 + ' ש"ח' : 'לא הוגדר'} |
-                                105%: ${emp.bonus105 ? emp.bonus105 + ' ש"ח' : 'לא הוגדר'} |
-                                115%+: ${emp.bonus115 ? emp.bonus115 + ' ש"ח' : 'לא הוגדר'}
-                            </div>
-                        `}
-                        <div style="margin-top: 10px;">
-                            <button class="btn-primary" onclick="editEmployee(${emp.id})">ערוך</button>
-                            <button class="btn-danger" onclick="deleteEmployee(${emp.id})">מחק</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            const managers = employees.filter(e => e.type === 'manager');
+            const regularEmployees = employees.filter(e => e.type !== 'manager');
+
+            let html = '';
+
+            // Managers table
+            if (managers.length > 0) {
+                html += `<h3>מנהלים (${managers.length})</h3>
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>סניף</th>
+                            <th>בונוס קבוע</th>
+                            <th>% הכנסות</th>
+                            <th>פרמיום רגיל</th>
+                            <th>פרמיום הנחה</th>
+                            <th>% ניקוי</th>
+                            <th>% תיקונים</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                managers.forEach(emp => {
+                    const empStore = stores.find(s => s.id === emp.storeId);
+                    const storeName = empStore ? empStore.name : '-';
+
+                    html += `
+                        <tr>
+                            <td class="name-cell">${emp.name}</td>
+                            <td>${storeName}</td>
+                            <td>${emp.managerFixedBonus || '-'}</td>
+                            <td>${emp.managerRevenuePercent ? emp.managerRevenuePercent + '%' : '-'}</td>
+                            <td>${emp.managerPremiumRegular || 'ברי"מ'}</td>
+                            <td>${emp.managerPremiumDiscount || 'ברי"מ'}</td>
+                            <td>${emp.managerCleaningPercent ? emp.managerCleaningPercent + '%' : 'ברי"מ'}</td>
+                            <td>${emp.managerRepairPercent ? emp.managerRepairPercent + '%' : 'ברי"מ'}</td>
+                            <td>
+                                <button class="btn-primary" style="padding:5px 10px;font-size:12px;margin:2px" onclick="editEmployee(${emp.id})">ערוך</button>
+                                <button class="btn-danger" style="padding:5px 10px;font-size:12px;margin:2px" onclick="deleteEmployee(${emp.id})">מחק</button>
+                            </td>
+                        </tr>`;
+                });
+                html += '</tbody></table>';
+            }
+
+            // Regular employees table
+            if (regularEmployees.length > 0) {
+                html += `<h3>עובדים (${regularEmployees.length})</h3>
+                <table class="compact-table">
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>סניף</th>
+                            <th>בונוס 95%</th>
+                            <th>בונוס 105%</th>
+                            <th>בונוס 115%</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                regularEmployees.forEach(emp => {
+                    const empStore = stores.find(s => s.id === emp.storeId);
+                    const storeName = empStore ? empStore.name : '-';
+
+                    html += `
+                        <tr>
+                            <td class="name-cell">${emp.name}</td>
+                            <td>${storeName}</td>
+                            <td>${emp.bonus95 || '-'}</td>
+                            <td>${emp.bonus105 || '-'}</td>
+                            <td>${emp.bonus115 || '-'}</td>
+                            <td>
+                                <button class="btn-primary" style="padding:5px 10px;font-size:12px;margin:2px" onclick="editEmployee(${emp.id})">ערוך</button>
+                                <button class="btn-danger" style="padding:5px 10px;font-size:12px;margin:2px" onclick="deleteEmployee(${emp.id})">מחק</button>
+                            </td>
+                        </tr>`;
+                });
+                html += '</tbody></table>';
+            }
+
+            container.innerHTML = html;
         }
 
         // Monthly data management
