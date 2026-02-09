@@ -353,18 +353,28 @@
         const hebrewMonths = ['תשרי', 'חשוון', 'כסלו', 'טבת', 'שבט', 'אדר', 'ניסן', 'אייר', 'סיוון', 'תמוז', 'אב', 'אלול'];
 
         // Data storage
-        let employees = [];
-        let stores = [];
-        let settings = {};
-        let monthlyData = {}; // { empId: { premiumRegular, premiumDiscount, cleaningRevenue, repairRevenue } }
+        let employees = [];      // Fixed: employee details and bonus settings
+        let stores = [];         // Fixed: store names only
+        let settings = {};       // Fixed: defaults
+        let currentMonthData = {  // Monthly: changes per month
+            storeData: {},       // { storeId: { financialTarget, currentSales, hatTarget, hatsSold } }
+            employeeData: {}     // { empId: { premiumRegular, premiumDiscount, premiumTotal, cleaningRevenue, repairRevenue } }
+        };
         let editingEmployeeId = null;
+
+        // Get current month key
+        function getMonthKey() {
+            const month = settings.currentMonth || 1;
+            const year = settings.currentYear || 'תשפה';
+            return `bonusMonthly_${hebrewMonths[month - 1]}_${year}`;
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadSettings();
             loadStores();
             loadEmployees();
-            loadMonthlyData();
+            loadCurrentMonthData();
             renderStores();
             renderEmployees();
             renderMonthlyData();
@@ -384,6 +394,9 @@
 
         // Settings management
         function saveSettings() {
+            const oldMonth = settings.currentMonth;
+            const oldYear = settings.currentYear;
+
             settings = {
                 managerPremiumRegular: parseFloat(document.getElementById('managerPremiumRegular').value) || 0,
                 managerPremiumDiscount: parseFloat(document.getElementById('managerPremiumDiscount').value) || 0,
@@ -394,6 +407,18 @@
                 currentYear: document.getElementById('currentYear').value || 'תשפ״ה'
             };
             localStorage.setItem('bonusSettings', JSON.stringify(settings));
+
+            // If month changed, save old and load new
+            if (oldMonth !== settings.currentMonth || oldYear !== settings.currentYear) {
+                // Save old month data with old key
+                const oldKey = `bonusMonthly_${hebrewMonths[(oldMonth || 1) - 1]}_${oldYear || 'תשפה'}`;
+                localStorage.setItem(oldKey, JSON.stringify(currentMonthData));
+
+                // Load new month data
+                loadCurrentMonthData();
+                renderStores();
+                renderMonthlyData();
+            }
         }
 
         function loadSettings() {
@@ -414,11 +439,13 @@
             }
         }
 
-        // Store management
+        // Store management (fixed data - names only)
         function loadStores() {
             const saved = localStorage.getItem('bonusStores');
             if (saved) {
                 stores = JSON.parse(saved);
+                // Migrate old format: keep only id and name
+                stores = stores.map(s => ({ id: s.id, name: s.name }));
             }
             // Pre-create default stores if none exist
             if (stores.length === 0) {
@@ -426,11 +453,7 @@
                 defaultStores.forEach((name, index) => {
                     stores.push({
                         id: Date.now() + index,
-                        name: name,
-                        financialTarget: 0,
-                        hatTarget: 0,
-                        currentSales: 0,
-                        hatsSold: 0
+                        name: name
                     });
                 });
                 saveStoresData();
@@ -441,13 +464,46 @@
             localStorage.setItem('bonusStores', JSON.stringify(stores));
         }
 
-        function updateStore(id, field, value) {
-            const store = stores.find(s => s.id === id);
-            if (store) {
-                store[field] = parseFloat(value) || 0;
-                saveStoresData();
-                renderStores();
+        // Monthly data management
+        function loadCurrentMonthData() {
+            const key = getMonthKey();
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                currentMonthData = JSON.parse(saved);
+            } else {
+                // Initialize empty month data
+                currentMonthData = { storeData: {}, employeeData: {} };
             }
+            // Ensure all stores have entries
+            stores.forEach(s => {
+                if (!currentMonthData.storeData[s.id]) {
+                    currentMonthData.storeData[s.id] = { financialTarget: 0, currentSales: 0, hatTarget: 0, hatsSold: 0 };
+                }
+            });
+            // Ensure all employees have entries
+            employees.forEach(e => {
+                if (!currentMonthData.employeeData[e.id]) {
+                    currentMonthData.employeeData[e.id] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
+                }
+            });
+        }
+
+        function saveCurrentMonthData() {
+            const key = getMonthKey();
+            localStorage.setItem(key, JSON.stringify(currentMonthData));
+        }
+
+        function updateStore(id, field, value) {
+            if (!currentMonthData.storeData[id]) {
+                currentMonthData.storeData[id] = { financialTarget: 0, currentSales: 0, hatTarget: 0, hatsSold: 0 };
+            }
+            currentMonthData.storeData[id][field] = parseFloat(value) || 0;
+            saveCurrentMonthData();
+            renderStores();
+        }
+
+        function getStoreMonthlyData(storeId) {
+            return currentMonthData.storeData[storeId] || { financialTarget: 0, currentSales: 0, hatTarget: 0, hatsSold: 0 };
         }
 
         function getPercentClass(percent) {
@@ -480,17 +536,18 @@
             `;
 
             stores.forEach(store => {
-                const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100).toFixed(1) : 0;
-                const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100).toFixed(1) : 0;
+                const sd = getStoreMonthlyData(store.id);
+                const finPercent = sd.financialTarget > 0 ? ((sd.currentSales / sd.financialTarget) * 100).toFixed(1) : 0;
+                const hatPercent = sd.hatTarget > 0 ? ((sd.hatsSold / sd.hatTarget) * 100).toFixed(1) : 0;
 
                 html += `
                     <tr>
                         <td class="name-cell">${store.name}</td>
-                        <td><input type="number" value="${store.financialTarget}" onchange="updateStore(${store.id}, 'financialTarget', this.value)"></td>
-                        <td><input type="number" value="${store.currentSales}" onchange="updateStore(${store.id}, 'currentSales', this.value)"></td>
+                        <td><input type="number" value="${sd.financialTarget}" onchange="updateStore(${store.id}, 'financialTarget', this.value)"></td>
+                        <td><input type="number" value="${sd.currentSales}" onchange="updateStore(${store.id}, 'currentSales', this.value)"></td>
                         <td class="${getPercentClass(finPercent)}">${finPercent}%</td>
-                        <td><input type="number" value="${store.hatTarget}" onchange="updateStore(${store.id}, 'hatTarget', this.value)"></td>
-                        <td><input type="number" value="${store.hatsSold}" onchange="updateStore(${store.id}, 'hatsSold', this.value)"></td>
+                        <td><input type="number" value="${sd.hatTarget}" onchange="updateStore(${store.id}, 'hatTarget', this.value)"></td>
+                        <td><input type="number" value="${sd.hatsSold}" onchange="updateStore(${store.id}, 'hatsSold', this.value)"></td>
                         <td class="${getPercentClass(hatPercent)}">${hatPercent}%</td>
                     </tr>
                 `;
@@ -593,7 +650,7 @@
             } else {
                 employees.push(employee);
                 // Initialize monthly data for new employee
-                monthlyData[employee.id] = {
+                currentMonthData.employeeData[employee.id] = {
                     premiumRegular: 0,
                     premiumDiscount: 0,
                     premiumTotal: 0,
@@ -603,7 +660,7 @@
             }
 
             localStorage.setItem('bonusEmployees', JSON.stringify(employees));
-            saveMonthlyData();
+            saveCurrentMonthData();
             closeModal();
             renderEmployees();
             renderMonthlyData();
@@ -612,9 +669,9 @@
         function deleteEmployee(id) {
             if (confirm('האם אתה בטוח שברצונך למחוק עובד זה?')) {
                 employees = employees.filter(e => e.id !== id);
-                delete monthlyData[id];
+                delete currentMonthData.employeeData[id];
                 localStorage.setItem('bonusEmployees', JSON.stringify(employees));
-                saveMonthlyData();
+                saveCurrentMonthData();
                 renderEmployees();
                 renderMonthlyData();
             }
@@ -721,23 +778,16 @@
         }
 
         // Monthly data management
-        function loadMonthlyData() {
-            const saved = localStorage.getItem('bonusMonthlyData');
-            if (saved) {
-                monthlyData = JSON.parse(saved);
-            }
-        }
-
-        function saveMonthlyData() {
-            localStorage.setItem('bonusMonthlyData', JSON.stringify(monthlyData));
-        }
-
         function updateMonthlyData(empId, field, value) {
-            if (!monthlyData[empId]) {
-                monthlyData[empId] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
+            if (!currentMonthData.employeeData[empId]) {
+                currentMonthData.employeeData[empId] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
             }
-            monthlyData[empId][field] = parseFloat(value) || 0;
-            saveMonthlyData();
+            currentMonthData.employeeData[empId][field] = parseFloat(value) || 0;
+            saveCurrentMonthData();
+        }
+
+        function getEmployeeMonthlyData(empId) {
+            return currentMonthData.employeeData[empId] || { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
         }
 
         function renderMonthlyData() {
@@ -769,7 +819,7 @@
                     <tbody>`;
 
                 managers.forEach(emp => {
-                    const data = monthlyData[emp.id] || {};
+                    const data = getEmployeeMonthlyData(emp.id);
                     const empStore = stores.find(s => s.id === emp.storeId);
                     const storeName = empStore ? empStore.name : '-';
 
@@ -802,7 +852,7 @@
                     <tbody>`;
 
                 regularEmployees.forEach(emp => {
-                    const data = monthlyData[emp.id] || {};
+                    const data = getEmployeeMonthlyData(emp.id);
                     const empStore = stores.find(s => s.id === emp.storeId);
                     const storeName = empStore ? empStore.name : '-';
 
@@ -829,11 +879,14 @@
             let grandTotal = 0;
 
             employees.forEach(emp => {
-                const data = monthlyData[emp.id] || {};
+                const data = getEmployeeMonthlyData(emp.id);
                 const bonusDetails = [];
                 let totalBonus = 0;
 
                 const empStore = stores.find(s => s.id === emp.storeId);
+
+                // Get store monthly data
+                const storeData = emp.storeId ? getStoreMonthlyData(emp.storeId) : { financialTarget: 0, currentSales: 0, hatTarget: 0, hatsSold: 0 };
 
                 if (emp.type === 'manager') {
                     const storeName = empStore ? empStore.name : '';
@@ -848,9 +901,9 @@
                     // 2. Revenue percentage if store met target
                     const revenuePercent = emp.managerRevenuePercent || 0;
                     if (revenuePercent > 0 && empStore) {
-                        const storeMetTarget = empStore.financialTarget > 0 && empStore.currentSales >= empStore.financialTarget;
+                        const storeMetTarget = storeData.financialTarget > 0 && storeData.currentSales >= storeData.financialTarget;
                         if (storeMetTarget) {
-                            const salesAfterVAT = empStore.currentSales / 1.18; // ניכוי מע"מ 18%
+                            const salesAfterVAT = storeData.currentSales / 1.18; // ניכוי מע"מ 18%
                             const revenueBonus = salesAfterVAT * (revenuePercent / 100);
                             bonusDetails.push({ desc: `${revenuePercent}% מהכנסות ${storeName} לאחר מע"מ (${salesAfterVAT.toFixed(0)} ש"ח)`, amount: revenueBonus });
                             totalBonus += revenueBonus;
@@ -874,8 +927,8 @@
                     // Employee bonuses
 
                     // Financial target bonus
-                    if (empStore && empStore.financialTarget > 0 && emp.bonus95) {
-                        const finPercent = (empStore.currentSales / empStore.financialTarget) * 100;
+                    if (empStore && storeData.financialTarget > 0 && emp.bonus95) {
+                        const finPercent = (storeData.currentSales / storeData.financialTarget) * 100;
 
                         if (finPercent >= 115 && emp.bonus115) {
                             bonusDetails.push({ desc: `יעד כספי ${empStore.name} (${finPercent.toFixed(1)}% - 115%+)`, amount: emp.bonus115 });
@@ -890,8 +943,8 @@
                     }
 
                     // Hat target bonus (same amounts)
-                    if (empStore && empStore.hatTarget > 0 && emp.bonus95) {
-                        const hatPercent = (empStore.hatsSold / empStore.hatTarget) * 100;
+                    if (empStore && storeData.hatTarget > 0 && emp.bonus95) {
+                        const hatPercent = (storeData.hatsSold / storeData.hatTarget) * 100;
 
                         if (hatPercent >= 115 && emp.bonus115) {
                             bonusDetails.push({ desc: `יעד כובעים ${empStore.name} (${hatPercent.toFixed(1)}% - 115%+)`, amount: emp.bonus115 });
@@ -1050,7 +1103,8 @@
             // Calculate totals by store
             const storeStats = {};
             stores.forEach(s => {
-                storeStats[s.id] = { revenue: s.currentSales, target: s.financialTarget, bonuses: 0, empCount: 0 };
+                const sd = getStoreMonthlyData(s.id);
+                storeStats[s.id] = { revenue: sd.currentSales, target: sd.financialTarget, bonuses: 0, empCount: 0 };
             });
             results.forEach(r => {
                 if (r.employee.storeId && storeStats[r.employee.storeId]) {
@@ -1123,15 +1177,15 @@
     <div class="summary-row">
         <div class="summary-card purple">
             <div class="label">סה"כ הכנסות</div>
-            <div class="value">${stores.reduce((sum, s) => sum + s.currentSales, 0).toLocaleString()} ₪</div>
+            <div class="value">${stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).currentSales, 0).toLocaleString()} ₪</div>
         </div>
         <div class="summary-card green">
             <div class="label">סה"כ יעד</div>
-            <div class="value">${stores.reduce((sum, s) => sum + s.financialTarget, 0).toLocaleString()} ₪</div>
+            <div class="value">${stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).financialTarget, 0).toLocaleString()} ₪</div>
         </div>
         <div class="summary-card orange">
             <div class="label">עמידה ביעד</div>
-            <div class="value">${stores.reduce((sum, s) => sum + s.financialTarget, 0) > 0 ? ((stores.reduce((sum, s) => sum + s.currentSales, 0) / stores.reduce((sum, s) => sum + s.financialTarget, 0)) * 100).toFixed(1) : 0}%</div>
+            <div class="value">${stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).financialTarget, 0) > 0 ? ((stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).currentSales, 0) / stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).financialTarget, 0)) * 100).toFixed(1) : 0}%</div>
         </div>
     </div>
 
@@ -1156,8 +1210,9 @@
         <tbody>`;
 
             stores.forEach(store => {
-                const finPercent = store.financialTarget > 0 ? ((store.currentSales / store.financialTarget) * 100) : 0;
-                const hatPercent = store.hatTarget > 0 ? ((store.hatsSold / store.hatTarget) * 100) : 0;
+                const sd = getStoreMonthlyData(store.id);
+                const finPercent = sd.financialTarget > 0 ? ((sd.currentSales / sd.financialTarget) * 100) : 0;
+                const hatPercent = sd.hatTarget > 0 ? ((sd.hatsSold / sd.hatTarget) * 100) : 0;
                 const finClass = finPercent >= 100 ? 'percent-good' : finPercent >= 95 ? 'percent-warning' : 'percent-bad';
                 const hatClass = hatPercent >= 100 ? 'percent-good' : hatPercent >= 95 ? 'percent-warning' : 'percent-bad';
                 const stats = storeStats[store.id] || { empCount: 0 };
@@ -1165,20 +1220,20 @@
                 html += `
             <tr>
                 <td>${store.name}</td>
-                <td>${store.financialTarget.toLocaleString()}</td>
-                <td>${store.currentSales.toLocaleString()}</td>
+                <td>${sd.financialTarget.toLocaleString()}</td>
+                <td>${sd.currentSales.toLocaleString()}</td>
                 <td><span class="percent-cell ${finClass}">${finPercent.toFixed(1)}%</span></td>
-                <td>${store.hatTarget}</td>
-                <td>${store.hatsSold}</td>
+                <td>${sd.hatTarget}</td>
+                <td>${sd.hatsSold}</td>
                 <td><span class="percent-cell ${hatClass}">${hatPercent.toFixed(1)}%</span></td>
                 <td>${stats.empCount}</td>
             </tr>`;
             });
 
-            const totalFinTarget = stores.reduce((sum, s) => sum + s.financialTarget, 0);
-            const totalFinActual = stores.reduce((sum, s) => sum + s.currentSales, 0);
-            const totalHatTarget = stores.reduce((sum, s) => sum + s.hatTarget, 0);
-            const totalHatActual = stores.reduce((sum, s) => sum + s.hatsSold, 0);
+            const totalFinTarget = stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).financialTarget, 0);
+            const totalFinActual = stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).currentSales, 0);
+            const totalHatTarget = stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).hatTarget, 0);
+            const totalHatActual = stores.reduce((sum, s) => sum + getStoreMonthlyData(s.id).hatsSold, 0);
 
             html += `
             <tr class="total-row">
@@ -1291,13 +1346,26 @@
 
         // Backup and Restore
         function saveBackup() {
+            // Save current month data first
+            saveCurrentMonthData();
+
+            // Collect all monthly data from localStorage
+            const allMonthlyData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('bonusMonthly_')) {
+                    allMonthlyData[key] = JSON.parse(localStorage.getItem(key));
+                }
+            }
+
             const backup = {
-                version: 1,
+                version: 2,
                 date: new Date().toISOString(),
                 settings: settings,
                 stores: stores,
                 employees: employees,
-                monthlyData: monthlyData
+                allMonthlyData: allMonthlyData,
+                currentMonthKey: getMonthKey()
             };
 
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
@@ -1326,18 +1394,51 @@
                         });
                     }
                     if (backup.stores) {
-                        stores = backup.stores;
+                        // Migrate old format: keep only id and name
+                        stores = backup.stores.map(s => ({ id: s.id, name: s.name }));
                         localStorage.setItem('bonusStores', JSON.stringify(stores));
                     }
                     if (backup.employees) {
                         employees = backup.employees;
                         localStorage.setItem('bonusEmployees', JSON.stringify(employees));
                     }
-                    if (backup.monthlyData) {
-                        monthlyData = backup.monthlyData;
-                        localStorage.setItem('bonusMonthlyData', JSON.stringify(monthlyData));
+
+                    // Handle new format (version 2+) with allMonthlyData
+                    if (backup.allMonthlyData) {
+                        Object.keys(backup.allMonthlyData).forEach(key => {
+                            localStorage.setItem(key, JSON.stringify(backup.allMonthlyData[key]));
+                        });
+                    }
+                    // Handle old format (version 1) with single monthlyData
+                    else if (backup.monthlyData) {
+                        // Convert old format to new format for current month
+                        const monthKey = getMonthKey();
+                        const convertedData = { storeData: {}, employeeData: {} };
+
+                        // Migrate store data from old stores format
+                        if (backup.stores) {
+                            backup.stores.forEach(s => {
+                                if (s.financialTarget || s.currentSales || s.hatTarget || s.hatsSold) {
+                                    convertedData.storeData[s.id] = {
+                                        financialTarget: s.financialTarget || 0,
+                                        currentSales: s.currentSales || 0,
+                                        hatTarget: s.hatTarget || 0,
+                                        hatsSold: s.hatsSold || 0
+                                    };
+                                }
+                            });
+                        }
+
+                        // Migrate employee monthly data
+                        Object.keys(backup.monthlyData).forEach(empId => {
+                            convertedData.employeeData[empId] = backup.monthlyData[empId];
+                        });
+
+                        localStorage.setItem(monthKey, JSON.stringify(convertedData));
                     }
 
+                    // Load current month data
+                    loadCurrentMonthData();
                     renderStores();
                     renderEmployees();
                     renderMonthlyData();
@@ -1357,12 +1458,13 @@
 
             // Add stores
             stores.forEach(store => {
-                csv += `סניף,${store.id},"${store.name}",,${store.financialTarget},${store.currentSales},${store.hatTarget},${store.hatsSold},,,,, \n`;
+                const sd = getStoreMonthlyData(store.id);
+                csv += `סניף,${store.id},"${store.name}",,${sd.financialTarget},${sd.currentSales},${sd.hatTarget},${sd.hatsSold},,,,, \n`;
             });
 
             // Add employees
             employees.forEach(emp => {
-                const data = monthlyData[emp.id] || {};
+                const data = getEmployeeMonthlyData(emp.id);
                 const empStore = stores.find(s => s.id === emp.storeId);
                 const storeName = empStore ? empStore.name : '';
 
@@ -1414,30 +1516,30 @@
                         if (isNaN(id)) continue;
 
                         if (type === 'סניף') {
-                            const store = stores.find(s => s.id === id);
-                            if (store) {
-                                updateIfFilled(store, 'financialTarget', cols[4]);
-                                updateIfFilled(store, 'currentSales', cols[5]);
-                                updateIfFilled(store, 'hatTarget', cols[6]);
-                                updateIfFilled(store, 'hatsSold', cols[7]);
+                            // Update store monthly data
+                            if (!currentMonthData.storeData[id]) {
+                                currentMonthData.storeData[id] = { financialTarget: 0, currentSales: 0, hatTarget: 0, hatsSold: 0 };
                             }
+                            updateIfFilled(currentMonthData.storeData[id], 'financialTarget', cols[4]);
+                            updateIfFilled(currentMonthData.storeData[id], 'currentSales', cols[5]);
+                            updateIfFilled(currentMonthData.storeData[id], 'hatTarget', cols[6]);
+                            updateIfFilled(currentMonthData.storeData[id], 'hatsSold', cols[7]);
                         } else if (type === 'מנהל' || type === 'עובד') {
-                            if (!monthlyData[id]) {
-                                monthlyData[id] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
+                            if (!currentMonthData.employeeData[id]) {
+                                currentMonthData.employeeData[id] = { premiumRegular: 0, premiumDiscount: 0, premiumTotal: 0, cleaningRevenue: 0, repairRevenue: 0 };
                             }
                             if (type === 'מנהל') {
-                                updateIfFilled(monthlyData[id], 'premiumRegular', cols[8]);
-                                updateIfFilled(monthlyData[id], 'premiumDiscount', cols[9]);
+                                updateIfFilled(currentMonthData.employeeData[id], 'premiumRegular', cols[8]);
+                                updateIfFilled(currentMonthData.employeeData[id], 'premiumDiscount', cols[9]);
                             } else {
-                                updateIfFilled(monthlyData[id], 'premiumTotal', cols[10]);
+                                updateIfFilled(currentMonthData.employeeData[id], 'premiumTotal', cols[10]);
                             }
-                            updateIfFilled(monthlyData[id], 'cleaningRevenue', cols[11]);
-                            updateIfFilled(monthlyData[id], 'repairRevenue', cols[12]);
+                            updateIfFilled(currentMonthData.employeeData[id], 'cleaningRevenue', cols[11]);
+                            updateIfFilled(currentMonthData.employeeData[id], 'repairRevenue', cols[12]);
                         }
                     }
 
-                    saveStoresData();
-                    saveMonthlyData();
+                    saveCurrentMonthData();
                     renderStores();
                     renderMonthlyData();
                     alert('הנתונים יובאו בהצלחה!');
