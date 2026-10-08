@@ -9,7 +9,7 @@ export const CASE_PARAMS = {
   body: {
     width: 0.38, // overall body width (estimate of real size; proportions from photo)
     height: 0.49, // body height without the handle (photo ratio height/width = 1.29)
-    depth: 0.21, // front-to-back, including both domes (estimate)
+    depth: 0.19, // front-to-back, including both domes (estimate; minimum that fits a 11 cm crown)
 
     // Silhouette (shield outline seen from the front)
     topBulge: 0.018, // how much the top edge arches up in the middle

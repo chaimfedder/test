@@ -107,7 +107,7 @@ export function offsetShield(p, f) {
   };
 }
 
-function shapeFromOutline(outline, dx = 0, dy = 0) {
+export function shapeFromOutline(outline, dx = 0, dy = 0) {
   return new THREE.Shape(outline.map(({ p }) => new THREE.Vector2(p.x + dx, p.y + dy)));
 }
 
@@ -115,7 +115,7 @@ function shapeFromOutline(outline, dx = 0, dy = 0) {
 // Small helpers
 // ---------------------------------------------------------------------------
 
-const smoothstep = (e0, e1, x) => {
+export const smoothstep = (e0, e1, x) => {
   const t = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1);
   return t * t * (3 - 2 * t);
 };
@@ -343,7 +343,7 @@ function buildShell(params, layout) {
 
 // path: array of {p: Vector3, side: Vector3 (unit, in-plane), up: Vector3 (unit)}
 // section(j) -> [a, b] offsets along side/up; scale(i) multiplies the section.
-function sweep(path, sectionCount, section, scale, closed) {
+export function sweep(path, sectionCount, section, scale, closed) {
   const n = path.length;
   const pos = new Float32Array(n * sectionCount * 3);
   for (let i = 0; i < n; i++) {
@@ -377,7 +377,7 @@ function sweep(path, sectionCount, section, scale, closed) {
   return geo;
 }
 
-function buildHandle(params, layout) {
+export function buildHandle(params, layout) {
   const h = params.handle;
   const H = params.body.height;
   const half = h.outerWidth / 2 - h.thickness / 2; // path x of the legs at the top
@@ -450,7 +450,7 @@ function buildPiping(params, layout) {
 // Brand plate
 // ---------------------------------------------------------------------------
 
-function buildPlate(params, layout, materials) {
+export function buildPlate(params, layout, materials) {
   const pl = params.plate;
   const inner = pl.inner;
   const outer = offsetShield(inner, pl.frameWidth);
@@ -513,7 +513,7 @@ function buildPlate(params, layout, materials) {
 // Layout shared by all parts
 // ---------------------------------------------------------------------------
 
-function computeLayout(params) {
+export function computeLayout(params) {
   const b = params.body;
   const N = params.mesh.perimeter;
   const outline = shieldOutline(b, N);
@@ -616,6 +616,10 @@ function computeLayout(params) {
     zFrontPlane,
     zBackPlane,
     zCenter: (sideTop + sideBottom) / 2,
+    sideTop,
+    sideBottom,
+    domeZ,
+    sAt,
     seamZ,
     frontHeight,
     plateTipY,

@@ -17,13 +17,15 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "assets" / "reference.jpg"
+SRC = ROOT / "assets" / "reference-open-empty.png"  # sharpest view of the plate
 DST = ROOT / "assets" / "logo-plate.png"
 
-# Silver inner plate in the reference photo: left, top, right, bottom (px).
-# The photo is almost frontal at the plate, so a corner-to-corner warp
-# (top-left, bottom-left, bottom-right, top-right) is enough to square it.
-QUAD = [(123.4, 183.3), (123.4, 268.3), (191.6, 268.3), (191.6, 183.3)]
+# Silver inner plate in the reference photo (px): top-left corner, top-right
+# corner and bottom tip. The plate is slightly rotated in the photo; an
+# affine warp built from these three points squares it.
+TOP_LEFT = (330.0, 504.0)
+TOP_RIGHT = (510.0, 488.0)
+TIP = (421.7, 719.0)
 OUT_W, OUT_H = 512, 640
 # Must match `plate.inner` in src/caseParams.js
 PLATE = dict(width=0.122, height=0.153, topBulge=0.0015, topCornerRadius=0.007,
@@ -32,11 +34,12 @@ EDGE_SHRINK = 0.06  # ignore this much (fraction of width) along the face outlin
 
 
 def warp(img):
-    big = 8
-    w, h = OUT_W // big * 2, OUT_H // big * 2
-    flat = QUAD[0] + QUAD[1] + QUAD[2] + QUAD[3]
-    small = img.transform((w, h), Image.QUAD, flat, resample=Image.BICUBIC)
-    return small.resize((OUT_W, OUT_H), Image.LANCZOS)
+    mid = ((TOP_LEFT[0] + TOP_RIGHT[0]) / 2, (TOP_LEFT[1] + TOP_RIGHT[1]) / 2)
+    a = (TOP_RIGHT[0] - TOP_LEFT[0]) / OUT_W
+    d = (TOP_RIGHT[1] - TOP_LEFT[1]) / OUT_W
+    b = (TIP[0] - mid[0]) / OUT_H
+    e = (TIP[1] - mid[1]) / OUT_H
+    return img.transform((OUT_W, OUT_H), Image.AFFINE, (a, b, TOP_LEFT[0], d, e, TOP_LEFT[1]), resample=Image.BICUBIC)
 
 
 def shield_polygon(width, height, top_bulge, corner_r, side_arc_r, tip_r, n=90):
@@ -105,7 +108,7 @@ def fill_from_inside(rgb, keep):
 def main():
     img = Image.open(SRC).convert("RGB")
     flat = warp(img)
-    flat = flat.filter(ImageFilter.UnsharpMask(radius=3, percent=70, threshold=2))
+    flat = flat.filter(ImageFilter.UnsharpMask(radius=2, percent=40, threshold=2))
     rgb = np.asarray(flat).astype(np.float32)
     filled = fill_from_inside(rgb, shield_mask(EDGE_SHRINK))
     result = Image.fromarray(np.clip(filled, 0, 255).astype(np.uint8))
