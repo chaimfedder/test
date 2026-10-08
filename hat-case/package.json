@@ -1,0 +1,13 @@
+{
+  "name": "hat-case-viewer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs 8080",
+    "render": "node tools/render.mjs",
+    "logo": "python3 tools/extract_logo.py"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

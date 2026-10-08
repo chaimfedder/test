@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>מארז כובע – מציג תלת ממד</title>
+  <style>
+    :root {
+      --bg: #e4e4e6;
+      --panel: rgba(255, 255, 255, 0.86);
+      --text: #1d1d1f;
+      --muted: #6b6b70;
+      --accent: #a8865c;
+      --border: rgba(0, 0, 0, 0.1);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; overflow: hidden; }
+    #app { position: fixed; inset: 0; touch-action: none; }
+    #app canvas { display: block; }
+    .bar { position: fixed; top: 12px; right: 12px; left: 12px; display: flex; flex-wrap: wrap;
+      gap: 6px; align-items: center; pointer-events: none; }
+    .bar > * { pointer-events: auto; }
+    .group { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 10px; padding: 4px; backdrop-filter: blur(6px); }
+    button, label.btn { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--text);
+      padding: 7px 11px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+    button:hover, label.btn:hover { background: rgba(0, 0, 0, 0.06); }
+    button.active { background: var(--text); color: #fff; }
+    #status { position: fixed; bottom: 12px; right: 12px; font-size: 13px; color: var(--muted);
+      background: var(--panel); border-radius: 8px; padding: 6px 10px; border: 1px solid var(--border); }
+    #reference { position: fixed; bottom: 12px; left: 12px; width: min(280px, 40vw); border-radius: 10px;
+      border: 1px solid var(--border); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15); display: none; }
+    #reference.show { display: block; }
+    input[type=file] { display: none; }
+    body.capture .bar, body.capture #status { display: none; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="bar">
+    <div class="group" id="views">
+      <button data-view="front">חזית</button>
+      <button data-view="side">צד</button>
+      <button data-view="back">גב</button>
+      <button data-view="threeQuarter">שלושת רבעי</button>
+      <button id="reset">איפוס מצלמה</button>
+    </div>
+    <div class="group">
+      <button id="export">ייצוא GLB</button>
+      <label class="btn">החלפת לוגו<input type="file" id="logo-file" accept="image/*"></label>
+      <button id="toggle-ref">תמונת מקור</button>
+    </div>
+  </div>
+  <img id="reference" src="assets/reference.jpg" alt="תמונת המקור">
+  <div id="status">טוען…</div>
+  <script type="module" src="./src/viewer.js"></script>
+</body>
+</html>
