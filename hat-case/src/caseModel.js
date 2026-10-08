@@ -498,8 +498,8 @@ export function computeLayout(params) {
     return best;
   };
 
-  // Bowl under the crown, centered on the largest circle that fits inside
-  const bowlCenter = fitCircle(outline, b.wall).center;
+  // Bowl under the crown, centered under the hat
+  const bowlCenter = new THREE.Vector2(0, b.height - b.wall - base.hatCenterFromInnerTop);
   const bowlWeight = (x, y) => {
     const r = Math.hypot(x - bowlCenter.x, (y - bowlCenter.y) / base.bowlOval);
     return 1 - smoothstep(base.bowlFlatRadius, base.bowlRadius, r);

@@ -28,8 +28,8 @@ TOP_RIGHT = (510.0, 488.0)
 TIP = (421.7, 719.0)
 OUT_W, OUT_H = 512, 640
 # Must match `plate.inner` in src/caseParams.js
-PLATE = dict(width=0.122, height=0.153, topBulge=0.0015, topCornerRadius=0.007,
-             sideArcRadius=0.1027, tipRadius=0.012)
+PLATE = dict(width=0.097, height=0.1216, topBulge=0.0012, topCornerRadius=0.0056,
+             sideArcRadius=0.0816, tipRadius=0.0095)
 EDGE_SHRINK = 0.06  # ignore this much (fraction of width) along the face outline
 
 

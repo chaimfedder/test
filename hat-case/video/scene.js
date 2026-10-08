@@ -3,7 +3,8 @@
 
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
-import { CASE_PARAMS } from '../src/caseParams.js';
+import { CASE_PARAMS, DESIGN } from '../src/caseParams.js';
+import { runFitChecks } from '../src/fitChecks.js';
 import { HAT_PARAMS, OPEN_CASE_PARAMS } from '../src/openCaseParams.js';
 import { buildOpenCase } from '../src/openCaseModel.js';
 import { CAMERA, CASE_PLACEMENT, LIGHTING } from './camera.js';
@@ -210,7 +211,7 @@ window.video = {
     const toWorld = (x, y, z) => lying.localToWorld(new THREE.Vector3(x, y, z)).toArray();
     const lid = box.lidPivot.children[0];
     const lidWorld = (x, y, z) => lid.localToWorld(new THREE.Vector3(x, y, z)).toArray();
-    const R = OPEN_CASE_PARAMS.insert.ringOuter;
+    const R = info.crown.x + OPEN_CASE_PARAMS.insert.ringOuter;
     const hz = info.zs;
     const widest = L.outline.reduce((m, o) => (o.p.x > m.p.x ? o : m));
     return {
@@ -228,129 +229,10 @@ window.video = {
       hingeRight: toWorld(OPEN_CASE_PARAMS.hinge.knuckles[1], info.axisY, info.axisZ),
     };
   },
-  // Geometry checks in case coordinates (meters): hat vs cavity, support, walls and lid
+  // Dimensions and fit checks (see src/fitChecks.js)
   checks() {
-    const info = box.info;
-    const ip = OPEN_CASE_PARAMS.insert;
-    const L = info.layout;
-    const wall = CASE_PARAMS.body.wall;
-    const inner = L.outline.map(({ p, n }) => [p.x - n.x * wall, p.y - n.y * wall]);
-    const distToWall = (x, y) => {
-      let best = Infinity;
-      let inside = false;
-      for (let i = 0, j = inner.length - 1; i < inner.length; j = i++) {
-        const [ax, ay] = inner[j];
-        const [bx, by] = inner[i];
-        const ex = bx - ax;
-        const ey = by - ay;
-        const t = Math.min(Math.max(((x - ax) * ex + (y - ay) * ey) / (ex * ex + ey * ey), 0), 1);
-        best = Math.min(best, Math.hypot(x - ax - ex * t, y - ay - ey * t));
-        if ((ay > y) !== (by > y) && x < ((bx - ax) * (y - ay)) / (by - ay) + ax) inside = !inside;
-      }
-      return inside ? best : -best;
-    };
-    const casePoints = (root) => {
-      scene.updateMatrixWorld(true);
-      const out = [];
-      const v = new THREE.Vector3();
-      root.traverse((o) => {
-        if (!o.isMesh) return;
-        const pos = o.geometry.attributes.position;
-        for (let i = 0; i < pos.count; i += 1) {
-          v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
-          out.push(lying.worldToLocal(v.clone()));
-        }
-      });
-      return out;
-    };
     setTime(12);
-    const hatPts = casePoints(box.hatHolder);
-    const oval = CASE_PARAMS.base.bowlOval;
-    const ellR = (p) => Math.hypot(p.x - info.hole.x, (p.y - info.hole.y) / oval);
-    // ring surface height at elliptical radius r (rounded top between ringInner and ringOuter)
-    const Ri = ip.ringInner;
-    const Ro = ip.ringOuter;
-    const rr = ip.ringRound;
-    const ringZ = (r) => {
-      if (r < Ri || r > Ro) return -Infinity;
-      if (r < Ri + rr) return info.zs - rr + Math.sqrt(Math.max(rr * rr - (Ri + rr - r) ** 2, 0));
-      if (r > Ro - rr) return info.zs - rr + Math.sqrt(Math.max(rr * rr - (r - (Ro - rr)) ** 2, 0));
-      return info.zs;
-    };
-    let maxZ = -Infinity;
-    let minZ = Infinity;
-    let cavityMargin = Infinity;
-    let wallMargin = Infinity;
-    let ringGap = Infinity;
-    let brimPadGap = Infinity;
-    for (const p of hatPts) {
-      const r = ellR(p);
-      maxZ = Math.max(maxZ, p.z);
-      minZ = Math.min(minZ, p.z);
-      if (p.z < info.zs - rr && r <= Ro) cavityMargin = Math.min(cavityMargin, Ri - r);
-      wallMargin = Math.min(wallMargin, distToWall(p.x, p.y));
-      if (r >= Ri && r <= Ro) ringGap = Math.min(ringGap, p.z - ringZ(r));
-      if (r > Ro) brimPadGap = Math.min(brimPadGap, p.z - info.pad);
-    }
-    // lid sweeping over the hat: lowest lid point above the hat footprint, per angle
-    let lidGap = Infinity;
-    let worstAngle = null;
-    const reach = info.brimRadius * HAT_PARAMS.oval + 0.01;
-    // the handle must stay clear of the lid as it swings open
-    let lidHandleGap = Infinity;
-    const handlePts = casePoints(box.root.getObjectByName('Handle'));
-    for (let a = 0; a <= 102; a += 3) {
-      box.setLid(a);
-      const lidPts = casePoints(box.lidPivot);
-      const cellOf = (p) => `${Math.round(p.x / 0.004)},${Math.round(p.y / 0.004)}`;
-      const lowestLid = new Map();
-      for (const p of lidPts) {
-        if (p.y <= CASE_PARAMS.body.height) continue;
-        const k = cellOf(p);
-        lowestLid.set(k, Math.min(lowestLid.get(k) ?? Infinity, p.z));
-      }
-      for (const h of handlePts) {
-        const z = lowestLid.get(cellOf(h));
-        if (z !== undefined) lidHandleGap = Math.min(lidHandleGap, z - h.z);
-      }
-      for (const p of lidPts) {
-        if (Math.hypot(p.x - info.hole.x, p.y - info.hole.y) > reach) continue;
-        const gap = p.z - maxZ;
-        if (gap < lidGap) {
-          lidGap = gap;
-          worstAngle = a;
-        }
-      }
-    }
-    // cavity floor must stay inside the base: compare with the base lining below it
-    const liningPts = casePoints(box.root.getObjectByName('BaseLining'));
-    const cell = 0.01;
-    const grid = new Map();
-    for (const p of liningPts) {
-      const key = `${Math.round(p.x / cell)},${Math.round(p.y / cell)}`;
-      grid.set(key, Math.min(grid.get(key) ?? Infinity, p.z));
-    }
-    let floorMargin = Infinity;
-    for (const p of casePoints(box.root.getObjectByName('InsertRing'))) {
-      const zFloor = grid.get(`${Math.round(p.x / cell)},${Math.round(p.y / cell)}`);
-      if (zFloor !== undefined) floorMargin = Math.min(floorMargin, p.z - zFloor);
-    }
-    setTime(12);
-    const mm = (x) => Math.round(x * 10000) / 10;
-    return {
-      brimRadius_mm: mm(info.brimRadius),
-      brimLongRadius_mm: mm(info.brimRadius * HAT_PARAMS.oval),
-      hatTopBelowSeam_mm: mm(info.seamZ - maxZ),
-      crownAboveCavityFloor_mm: mm(minZ - info.zc),
-      crownToRingInside_mm: mm(cavityMargin),
-      hatToSideWall_mm: mm(wallMargin),
-      hatOnRing_mm: mm(ringGap),
-      brimAbovePadding_mm: mm(brimPadGap),
-      lidAboveHandle_mm: mm(lidHandleGap),
-      lidToHatMinGap_mm: mm(lidGap),
-      lidAngleAtMinGap: worstAngle,
-      cavityAboveBaseFloor_mm: mm(floorMargin),
-    };
+    return runFitChecks(box, CASE_PARAMS, OPEN_CASE_PARAMS, HAT_PARAMS, DESIGN);
   },
   // The case with the whole sequence as a glTF animation (for editing in Blender etc.)
   async exportAnimatedBase64() {
