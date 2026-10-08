@@ -218,126 +218,6 @@ function reliefHeight(lines, rp, x, y) {
 }
 
 // ---------------------------------------------------------------------------
-// Shell (one closed surface: front face, rounded edges, side wall, back)
-// ---------------------------------------------------------------------------
-
-function buildShell(params, layout) {
-  const b = params.body;
-  const m = params.mesh;
-  const N = m.perimeter;
-  const outline = layout.outline;
-  const { zFrontPlane, zBackPlane } = layout;
-  const re = b.frontEdgeRadius;
-  const rb = b.backEdgeRadius;
-  const c = layout.center;
-
-  const sideTop = zFrontPlane - re;
-  const sideBottom = zBackPlane + rb;
-  const seamZ = layout.seamZ;
-  const sp = params.seam;
-  const grooveSigma = sp.grooveWidth * 0.42;
-
-  const inset = (k, d) => {
-    const o = outline[k];
-    return new THREE.Vector2(o.p.x - o.n.x * d, o.p.y - o.n.y * d);
-  };
-
-  const rings = []; // each ring: function(k) -> [x, y, z]
-
-  // Front face (dome + relief + flat seat under the plate)
-  for (let r = 1; r <= m.frontRings; r++) {
-    const s = r / m.frontRings;
-    rings.push((k) => {
-      const q = inset(k, re);
-      const x = c.x + (q.x - c.x) * s;
-      const y = c.y + (q.y - c.y) * s;
-      return [x, y, layout.frontHeight(x, y, s)];
-    });
-  }
-  // Front rounded edge
-  for (let r = 1; r <= m.frontEdgeRings; r++) {
-    const th = (r / m.frontEdgeRings) * (Math.PI / 2);
-    rings.push((k) => {
-      const q = inset(k, re * (1 - Math.sin(th)));
-      return [q.x, q.y, zFrontPlane - re + re * Math.cos(th)];
-    });
-  }
-  // Side wall, denser around the seam groove
-  const sideZ = [];
-  for (let r = 1; r < m.sideRings; r++) {
-    const u = r / m.sideRings;
-    sideZ.push(sideTop + (sideBottom - sideTop) * u);
-  }
-  for (let r = -6; r <= 6; r++) sideZ.push(seamZ + (r / 6) * sp.grooveWidth);
-  sideZ.sort((a, b2) => b2 - a);
-  const sideZClean = sideZ.filter((z, i) => i === 0 || sideZ[i - 1] - z > 1e-4);
-  sideZClean.push(sideBottom);
-  for (const z of sideZClean) {
-    const g = sp.grooveDepth * Math.exp(-(((z - seamZ) / grooveSigma) ** 2));
-    rings.push((k) => {
-      const q = inset(k, g);
-      return [q.x, q.y, z];
-    });
-  }
-  // Back rounded edge
-  for (let r = 1; r <= m.backEdgeRings; r++) {
-    const ph = (r / m.backEdgeRings) * (Math.PI / 2);
-    rings.push((k) => {
-      const q = inset(k, rb * (1 - Math.cos(ph)));
-      return [q.x, q.y, zBackPlane + rb - rb * Math.sin(ph)];
-    });
-  }
-  // Back face (gentle dome + one panel line)
-  const bp = params.back;
-  for (let r = m.backRings - 1; r >= 1; r--) {
-    const s = r / m.backRings;
-    rings.push((k) => {
-      const q = inset(k, rb);
-      const x = c.x + (q.x - c.x) * s;
-      const y = c.y + (q.y - c.y) * s;
-      const rad = Math.hypot(q.x - c.x, q.y - c.y);
-      const dist = (s - bp.panelLine) * rad;
-      const panel = bp.panelDepth * Math.exp(-((dist / (bp.panelWidth * 0.5)) ** 2));
-      return [x, y, zBackPlane - b.backDome * (1 - s * s) + panel];
-    });
-  }
-
-  const ringCount = rings.length;
-  const vertCount = 2 + ringCount * N;
-  const pos = new Float32Array(vertCount * 3);
-  const frontCenterZ = layout.frontHeight(c.x, c.y, 0);
-  pos.set([c.x, c.y, frontCenterZ], 0);
-  for (let r = 0; r < ringCount; r++) {
-    for (let k = 0; k < N; k++) {
-      pos.set(rings[r](k), (1 + r * N + k) * 3);
-    }
-  }
-  const backCenter = vertCount - 1;
-  pos.set([c.x, c.y, zBackPlane - b.backDome], backCenter * 3);
-
-  const idx = [];
-  const at = (r, k) => 1 + r * N + (k % N);
-  for (let k = 0; k < N; k++) idx.push(0, at(0, k), at(0, k + 1));
-  for (let r = 0; r < ringCount - 1; r++) {
-    for (let k = 0; k < N; k++) {
-      const a = at(r, k);
-      const bq = at(r, k + 1);
-      const cq = at(r + 1, k);
-      const d = at(r + 1, k + 1);
-      idx.push(a, cq, bq, bq, cq, d);
-    }
-  }
-  const last = ringCount - 1;
-  for (let k = 0; k < N; k++) idx.push(at(last, k), backCenter, at(last, k + 1));
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setIndex(idx);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-// ---------------------------------------------------------------------------
 // Swept tubes (handle and seam trim)
 // ---------------------------------------------------------------------------
 
@@ -399,7 +279,7 @@ export function buildHandle(params, layout) {
   const n = params.mesh.handlePath;
   const pts2 = curve.getSpacedPoints(n - 1);
   const total = curve.getLength();
-  const z = layout.zCenter + h.zOffset;
+  const z = layout.handleZ + h.zOffset;
   const path = pts2.map((p, i) => {
     const a = pts2[Math.max(i - 1, 0)];
     const b = pts2[Math.min(i + 1, n - 1)];
@@ -427,23 +307,6 @@ export function buildHandle(params, layout) {
     return 1 + (h.baseFlare - 1) * (1 - smoothstep(0, h.flareLength + h.embed, d));
   };
   return sweep(path, M, section, scale, false);
-}
-
-function buildPiping(params, layout) {
-  const sp = params.seam;
-  const N = params.mesh.perimeter;
-  const off = sp.pipingRadius - sp.pipingProtrusion; // center inside the side wall
-  const path = layout.outline.slice(0, N).map(({ p, n }) => ({
-    p: new THREE.Vector3(p.x - n.x * off, p.y - n.y * off, layout.seamZ),
-    side: new THREE.Vector3(n.x, n.y, 0),
-    up: new THREE.Vector3(0, 0, 1),
-  }));
-  const M = params.mesh.pipingSection;
-  const section = (j) => {
-    const a = (j / M) * Math.PI * 2;
-    return [Math.cos(a) * sp.pipingRadius, Math.sin(a) * sp.pipingRadius];
-  };
-  return sweep(path, M, section, () => 1, true);
 }
 
 // ---------------------------------------------------------------------------
@@ -513,18 +376,43 @@ export function buildPlate(params, layout, materials) {
 // Layout shared by all parts
 // ---------------------------------------------------------------------------
 
+// Largest circle inside the outline inset by `wall`, center on the symmetry axis.
+export function fitCircle(outline, wall) {
+  const pts = outline.map(({ p, n }) => new THREE.Vector2(p.x - n.x * wall, p.y - n.y * wall));
+  let best = { y: 0, r: 0 };
+  const ys = pts.map((p) => p.y);
+  const lo = Math.min(...ys);
+  const hi = Math.max(...ys);
+  for (let i = 0; i <= 400; i++) {
+    const y = lo + ((hi - lo) * i) / 400;
+    let r = Infinity;
+    for (let k = 0; k < pts.length; k++) {
+      const q = pts[k];
+      const w = pts[(k + 1) % pts.length];
+      const ex = w.x - q.x;
+      const ey = w.y - q.y;
+      const t = Math.min(Math.max(((0 - q.x) * ex + (y - q.y) * ey) / (ex * ex + ey * ey), 0), 1);
+      r = Math.min(r, Math.hypot(q.x + ex * t, q.y + ey * t - y));
+    }
+    if (r > best.r) best = { y, r };
+  }
+  return { center: new THREE.Vector2(0, best.y), radius: best.r };
+}
+
 export function computeLayout(params) {
   const b = params.body;
   const N = params.mesh.perimeter;
   const outline = shieldOutline(b, N);
 
-  const zFront = b.depth / 2;
-  const zFrontPlane = zFront - b.frontDome;
-  const zBackPlane = -b.depth / 2 + b.backDome;
-  const sideTop = zFrontPlane - b.frontEdgeRadius;
-  const sideBottom = zBackPlane + b.backEdgeRadius;
-  if (sideTop <= sideBottom) throw new Error('depth too small for the edge radii and domes');
-  const seamZ = sideTop + (sideBottom - sideTop) * params.seam.position;
+  // Depths (z) are measured from the seam between lid and base (z = 0)
+  const seamZ = 0;
+  const sideTop = b.lidSideHeight;
+  const zFrontPlane = sideTop + b.frontEdgeRadius;
+  const base = params.base;
+  const zBaseBack = -(base.edgeInnerDepth + b.wall); // outside of the shallow back
+  const baseSideBottom = zBaseBack + base.edgeRadius;
+  if (baseSideBottom >= seamZ) throw new Error('base too shallow for its edge radius');
+  const bowlDepth = base.centerInnerDepth - base.edgeInnerDepth;
 
   // Area centroid of the outline: center of the dome and of the face rings
   let A = 0;
@@ -610,14 +498,30 @@ export function computeLayout(params) {
     return best;
   };
 
+  // Bowl under the crown, centered on the largest circle that fits inside
+  const bowlCenter = fitCircle(outline, b.wall).center;
+  const bowlWeight = (x, y) => {
+    const r = Math.hypot(x - bowlCenter.x, (y - bowlCenter.y) / base.bowlOval);
+    return 1 - smoothstep(base.bowlFlatRadius, base.bowlRadius, r);
+  };
+  // Outside of the back at (x, y); s = 0 at the center .. 1 at the edge rounding
+  const backZ = (x, y, s) => {
+    const w = bowlWeight(x, y);
+    return zBaseBack - bowlDepth * w - base.backDome * (1 - s * s) * (1 - w);
+  };
+
   return {
     outline,
     center,
     zFrontPlane,
-    zBackPlane,
-    zCenter: (sideTop + sideBottom) / 2,
+    zBaseBack,
+    baseSideBottom,
+    zBottom: zBaseBack - bowlDepth,
+    backZ,
+    bowlCenter,
+    handleZ: zBaseBack / 2,
+    wall: b.wall,
     sideTop,
-    sideBottom,
     domeZ,
     sAt,
     seamZ,
@@ -651,31 +555,4 @@ export function setLogoTexture(material, texture) {
   texture.name = 'LogoPlate';
   material.map = texture;
   material.needsUpdate = true;
-}
-
-export function buildHatCase(params, { logoTexture = null } = {}) {
-  const layout = computeLayout(params);
-  const materials = createMaterials(params, logoTexture);
-
-  const group = new THREE.Group();
-  group.name = 'HatCase';
-
-  const shell = new THREE.Mesh(buildShell(params, layout), materials.shell);
-  shell.name = 'Shell';
-  const piping = new THREE.Mesh(buildPiping(params, layout), materials.trim);
-  piping.name = 'SeamTrim';
-  const handle = new THREE.Mesh(buildHandle(params, layout), materials.handle);
-  handle.name = 'Handle';
-  const plate = buildPlate(params, layout, materials);
-
-  group.add(shell, piping, handle, plate);
-  // stand the case on y = 0 (the trim sticks out a hair below the shell)
-  group.position.y = -new THREE.Box3().setFromObject(group).min.y;
-  group.traverse((o) => {
-    if (o.isMesh) {
-      o.castShadow = true;
-      o.receiveShadow = true;
-    }
-  });
-  return group;
 }

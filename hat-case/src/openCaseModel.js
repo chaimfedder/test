@@ -8,6 +8,7 @@ import {
   buildPlate,
   computeLayout,
   createMaterials,
+  fitCircle,
   setLogoTexture,
   smoothstep,
   sweep,
@@ -105,7 +106,8 @@ function caseSurfaces(params, op, layout) {
   const O = layout.outline;
   const c = layout.center;
   const re = b.frontEdgeRadius;
-  const rb = b.backEdgeRadius;
+  const rb = params.base.edgeRadius;
+  const wall = b.wall;
   const seamTop = layout.seamZ + op.seamGap / 2;
   const seamBottom = layout.seamZ - op.seamGap / 2;
   const inset = (k, d) => [O[k].p.x - O[k].n.x * d, O[k].p.y - O[k].n.y * d];
@@ -135,33 +137,31 @@ function caseSurfaces(params, op, layout) {
     return { rings, center };
   };
 
-  // Base: rim -> side wall -> rounded back edge -> back face -> back center
+  // Base: rim -> short side wall -> rounded edge -> back (shallow, bowl under the crown) -> center
   const baseRings = () => {
     const rings = [];
-    const sideSteps = 36;
+    const sideSteps = 8;
     for (let r = 0; r <= sideSteps; r++) {
-      const z = seamBottom + (layout.sideBottom - seamBottom) * (r / sideSteps);
+      const z = seamBottom + (layout.baseSideBottom - seamBottom) * (r / sideSteps);
       rings.push(ringFrom(N, (k) => [...inset(k, 0), z]));
     }
     for (let r = 1; r <= m.backEdgeRings; r++) {
       const ph = (r / m.backEdgeRings) * (Math.PI / 2);
-      rings.push(ringFrom(N, (k) => [...inset(k, rb * (1 - Math.cos(ph))), layout.zBackPlane + rb - rb * Math.sin(ph)]));
+      rings.push(ringFrom(N, (k) => [...inset(k, rb * (1 - Math.cos(ph))), layout.zBaseBack + rb - rb * Math.sin(ph)]));
     }
-    const bp = params.back;
     for (let r = m.backRings - 1; r >= 1; r--) {
       const s = r / m.backRings;
       rings.push(ringFrom(N, (k) => {
         const [qx, qy] = inset(k, rb);
-        const rad = Math.hypot(qx - c.x, qy - c.y);
-        const dist = (s - bp.panelLine) * rad;
-        const panel = bp.panelDepth * Math.exp(-((dist / (bp.panelWidth * 0.5)) ** 2));
-        return [c.x + (qx - c.x) * s, c.y + (qy - c.y) * s, layout.zBackPlane - b.backDome * (1 - s * s) + panel];
+        const x = c.x + (qx - c.x) * s;
+        const y = c.y + (qy - c.y) * s;
+        return [x, y, layout.backZ(x, y, s)];
       }));
     }
-    return { rings, center: [c.x, c.y, layout.zBackPlane - b.backDome] };
+    return { rings, center: [c.x, c.y, layout.backZ(c.x, c.y, 0)] };
   };
 
-  const inside = new THREE.Vector3(c.x, c.y, (layout.sideTop + layout.sideBottom) / 2);
+  const inside = new THREE.Vector3(c.x, c.y, (layout.sideTop + layout.zBaseBack) / 2);
   const outward = (p, n) => n.dot(p.clone().sub(inside));
   const inward = (p, n) => -outward(p, n);
 
@@ -169,17 +169,17 @@ function caseSurfaces(params, op, layout) {
   const lidSmooth = lidRings(false);
   const lidOuter = orient(ringGeometry(lidReal.rings, N, lidReal.center), outward);
   const lidSmoothGeo = orient(ringGeometry(lidSmooth.rings, N, lidSmooth.center), outward);
-  const lidInner = orient(offsetGeometry(lidSmoothGeo, op.wall), inward);
+  const lidInner = orient(offsetGeometry(lidSmoothGeo, wall), inward);
   const lidRim = orient(
-    ringGeometry([lidReal.rings[lidReal.rings.length - 1], ringFrom(N, (k) => [...inset(k, op.wall), seamTop])], N),
+    ringGeometry([lidReal.rings[lidReal.rings.length - 1], ringFrom(N, (k) => [...inset(k, wall), seamTop])], N),
     (p, n) => -n.z,
   );
 
   const base = baseRings();
   const baseOuter = orient(ringGeometry(base.rings, N, null, base.center), outward);
-  const baseInner = orient(offsetGeometry(baseOuter, op.wall), inward);
+  const baseInner = orient(offsetGeometry(baseOuter, wall), inward);
   const baseRim = orient(
-    ringGeometry([ringFrom(N, (k) => [...inset(k, op.wall), seamBottom]), base.rings[0]], N),
+    ringGeometry([ringFrom(N, (k) => [...inset(k, wall), seamBottom]), base.rings[0]], N),
     (p, n) => n.z,
   );
 
@@ -203,73 +203,60 @@ function piping(params, layout, z) {
   return sweep(path.slice(0, N), M, section, () => 1, true);
 }
 
-// Largest circle inside the inner outline, center on the symmetry axis.
-function fitCircle(layout, wall) {
-  const pts = layout.outline.map(({ p, n }) => new THREE.Vector2(p.x - n.x * wall, p.y - n.y * wall));
-  let best = { y: 0, r: 0 };
-  const ys = pts.map((p) => p.y);
-  const lo = Math.min(...ys);
-  const hi = Math.max(...ys);
-  for (let i = 0; i <= 400; i++) {
-    const y = lo + ((hi - lo) * i) / 400;
-    let r = Infinity;
-    for (let k = 0; k < pts.length; k++) {
-      const q = pts[k];
-      const w = pts[(k + 1) % pts.length];
-      const ex = w.x - q.x;
-      const ey = w.y - q.y;
-      const t = Math.min(Math.max(((0 - q.x) * ex + (y - q.y) * ey) / (ex * ex + ey * ey), 0), 1);
-      r = Math.min(r, Math.hypot(q.x + ex * t, q.y + ey * t - y));
-    }
-    if (r > best.r) best = { y, r };
-  }
-  return { center: new THREE.Vector2(0, best.y), radius: best.r };
-}
-
-function buildInsert(params, op, layout, hole, zs, zc, material) {
+// Velvet padding over the shallow part of the base, with a raised ring in the
+// middle. The hat rests on the ring; its crown hangs into the cavity inside.
+function buildInsert(params, op, layout, center, levels, material) {
   const ip = op.insert;
   const N = params.mesh.perimeter;
-  const edge = op.wall - ip.overlap;
+  const oval = params.base.bowlOval;
+  const edge = params.body.wall - ip.overlap;
   const outlinePts = layout.outline.map(({ p, n }) => new THREE.Vector2(p.x - n.x * edge, p.y - n.y * edge));
   const shape = new THREE.Shape(outlinePts);
-  const holePath = new THREE.Path();
-  holePath.absarc(hole.x, hole.y, ip.holeRadius + ip.rollRadius, 0, Math.PI * 2, true);
-  shape.holes.push(holePath);
-  const top = new THREE.ShapeGeometry(shape, 96);
-  top.translate(0, 0, zs);
+  const hole = new THREE.Path();
+  hole.absellipse(center.x, center.y, ip.ringOuter, ip.ringOuter * oval, 0, Math.PI * 2, true);
+  shape.holes.push(hole);
+  const pad = new THREE.ShapeGeometry(shape, 96);
+  pad.translate(0, 0, levels.pad);
 
-  // Cavity: rolled edge, wall, filleted floor (lathe around the cavity axis)
-  const prof = [];
-  const R = ip.holeRadius;
-  const rr = ip.rollRadius;
+  // Ring and cavity in one lathe profile (r, z), outside bottom -> top -> inside -> floor
+  const Ri = ip.ringInner;
+  const Ro = ip.ringOuter;
+  const rr = ip.ringRound;
   const rf = ip.floorFillet;
-  for (let i = 0; i <= 10; i++) {
-    const a = Math.PI / 2 - (i / 10) * (Math.PI / 2); // from top of the roll to its inner side
-    prof.push(new THREE.Vector2(R + rr - rr * Math.cos(a), zs - rr + rr * Math.sin(a)));
-  }
-  prof.push(new THREE.Vector2(R, zc + rf));
+  const top = levels.ringTop;
+  const prof = [new THREE.Vector2(Ro, levels.pad - 0.002), new THREE.Vector2(Ro, top - rr)];
   for (let i = 1; i <= 10; i++) {
     const a = (i / 10) * (Math.PI / 2);
-    prof.push(new THREE.Vector2(R - rf + rf * Math.cos(a), zc + rf - rf * Math.sin(a)));
+    prof.push(new THREE.Vector2(Ro - rr + rr * Math.cos(a), top - rr + rr * Math.sin(a)));
   }
-  prof.push(new THREE.Vector2(0.0001, zc));
-  const cavity = new THREE.LatheGeometry(prof, N / 2);
-  cavity.rotateX(Math.PI / 2);
-  cavity.translate(hole.x, hole.y, 0);
+  for (let i = 1; i <= 10; i++) {
+    const a = Math.PI / 2 + (i / 10) * (Math.PI / 2);
+    prof.push(new THREE.Vector2(Ri + rr + rr * Math.cos(a), top - rr + rr * Math.sin(a)));
+  }
+  prof.push(new THREE.Vector2(Ri, levels.cavityFloor + rf));
+  for (let i = 1; i <= 10; i++) {
+    const a = (i / 10) * (Math.PI / 2);
+    prof.push(new THREE.Vector2(Ri - rf + rf * Math.cos(a), levels.cavityFloor + rf - rf * Math.sin(a)));
+  }
+  prof.push(new THREE.Vector2(0.0001, levels.cavityFloor));
+  const ring = new THREE.LatheGeometry(prof, N / 2);
+  ring.rotateX(Math.PI / 2);
+  ring.scale(1, oval, 1);
+  ring.translate(center.x, center.y, 0);
 
   const g = new THREE.Group();
   g.name = 'Insert';
-  const m1 = new THREE.Mesh(top, material);
-  m1.name = 'InsertSurface';
-  const m2 = new THREE.Mesh(cavity, material);
-  m2.name = 'InsertCavity';
+  const m1 = new THREE.Mesh(pad, material);
+  m1.name = 'InsertPad';
+  const m2 = new THREE.Mesh(ring, material);
+  m2.name = 'InsertRing';
   g.add(m1, m2);
   return g;
 }
 
 function buildLidLabel(op, layout, materials, labelTexture) {
   const lp = op.label;
-  const zInner = layout.domeZ(layout.sAt(0, lp.y)) - op.wall;
+  const zInner = layout.domeZ(layout.sAt(0, lp.y)) - layout.wall;
   const face = materials.label.clone();
   face.name = 'Lid_Label';
   if (labelTexture) setLogoTexture(face, labelTexture);
@@ -345,9 +332,19 @@ export function buildHat(hp, brimRadius) {
     felt.push([crownR(y), y]);
   }
   felt.push(...arc(rB + 0.006, -0.006, 0.006, Math.PI, Math.PI / 2, 6).slice(1));
-  for (let i = 1; i <= 12; i++) felt.push([rB + 0.006 + ((Rb - bt / 2 - rB - 0.006) * i) / 12, 0]);
-  felt.push(...arc(Rb - bt / 2, bt / 2, bt / 2, -Math.PI / 2, Math.PI / 2, 8).slice(1));
-  for (let i = 1; i <= 12; i++) felt.push([Rb - bt / 2 + (ro + 0.004 - (Rb - bt / 2)) * (i / 12), bt]);
+  // brim: curls down toward its edge (the hat lies upside down)
+  const rj = rB + 0.006;
+  const rEdge = Rb - bt / 2;
+  const curl = (r) => -hp.brimCurl * (Math.max(r - rj, 0) / (rEdge - rj)) ** 2;
+  for (let i = 1; i <= 24; i++) {
+    const r = rj + ((rEdge - rj) * i) / 24;
+    felt.push([r, curl(r)]);
+  }
+  felt.push(...arc(rEdge, curl(rEdge) + bt / 2, bt / 2, -Math.PI / 2, Math.PI / 2, 8).slice(1));
+  for (let i = 1; i <= 24; i++) {
+    const r = rEdge + (ro + 0.004 - rEdge) * (i / 24);
+    felt.push([r, curl(r) + bt]);
+  }
   felt.push(...arc(ro + 0.004, bt - 0.004, 0.004, Math.PI / 2, Math.PI, 6).slice(1));
 
   const sd = hp.sweatbandDepth;
@@ -490,13 +487,19 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
     mesh(buildHandle(params, layout), mats.handle, 'Handle'),
   );
 
-  // Support with the crown cavity
-  const fit = fitCircle(layout, op.wall);
+  // Padding with the raised ring and the crown cavity
+  const ip = op.insert;
+  const fit = fitCircle(layout.outline, params.body.wall);
   const brimRadius = Math.min(hp.brimRadius, fit.radius - 0.006);
-  const hole = fit.center;
-  const zs = surf.seamBottom - op.insert.surfaceBelowSeam;
-  const zc = zs - (hp.crownHeight + op.insert.crownClearance);
-  base.add(buildInsert(params, op, layout, hole, zs, zc, mats.velvet));
+  const hole = layout.bowlCenter;
+  const levels = {
+    pad: layout.zBaseBack + params.body.wall + ip.padThickness,
+    ringTop: ip.ringTop,
+    cavityFloor: ip.ringTop - hp.crownHeight - ip.crownClearance,
+  };
+  base.add(buildInsert(params, op, layout, hole, levels, mats.velvet));
+  const zs = levels.ringTop;
+  const zc = levels.cavityFloor;
 
   // Hinge axis: along x, just outside the top of the outline, at the seam
   const hg = op.hinge;
@@ -535,7 +538,21 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
 
   // Hat: local +y (head opening) points along the case's +z (up when lying)
   const hat = buildHat(hp, brimRadius);
-  const hatRest = new THREE.Vector3(hole.x, hole.y, zs);
+  // Lower the hat until its curled brim first touches the ring top
+  const rj = hp.crownBaseRadius + 0.006;
+  const brimDrop = (r) => hp.brimCurl * (Math.max(r - rj, 0) / (brimRadius - hp.brimThickness / 2 - rj)) ** 2;
+  const ringTopAt = (r) => {
+    const { ringInner: Ri, ringOuter: Ro, ringRound: rr } = ip;
+    if (r < Ri + rr) return -rr + Math.sqrt(Math.max(rr * rr - (Ri + rr - r) ** 2, 0));
+    if (r > Ro - rr) return -rr + Math.sqrt(Math.max(rr * rr - (r - (Ro - rr)) ** 2, 0));
+    return 0;
+  };
+  let lift = -Infinity;
+  for (let i = 0; i <= 400; i++) {
+    const r = ip.ringInner + ((ip.ringOuter - ip.ringInner) * i) / 400;
+    lift = Math.max(lift, ringTopAt(r) + brimDrop(r));
+  }
+  const hatRest = new THREE.Vector3(hole.x, hole.y, zs + lift);
   const hatHolder = new THREE.Group();
   hatHolder.name = 'HatHolder';
   hatHolder.rotation.x = Math.PI / 2;
@@ -556,7 +573,7 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
     hatHolder,
     hatRest,
     materials: mats,
-    info: { brimRadius, hole, zs, zc, axisY, axisZ, seamZ: layout.seamZ, layout },
+    info: { brimRadius, hole, zs, zc, pad: levels.pad, axisY, axisZ, seamZ: layout.seamZ, layout },
     setLid(deg) {
       lidPivot.rotation.x = -THREE.MathUtils.degToRad(deg);
     },
@@ -564,4 +581,13 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
       hatHolder.position.set(hatRest.x, hatRest.y, hatRest.z + d);
     },
   };
+}
+
+// Closed case for the viewer: the same parts with the lid shut and no hat.
+export function buildHatCase(params, op, hp, textures = {}) {
+  const c = buildOpenCase(params, op, hp, textures);
+  c.root.remove(c.hatHolder);
+  c.root.name = 'HatCase';
+  c.root.position.y = -new THREE.Box3().setFromObject(c.root).min.y;
+  return c.root;
 }

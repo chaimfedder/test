@@ -4,22 +4,23 @@
 // x = width, y = height (tip at 0, top/handle side up), z = depth (+z front).
 
 export const OPEN_CASE_PARAMS = {
-  wall: 0.004, // shell thickness
   seamGap: 0.0003, // tiny gap between lid rim and base rim when closed
   hinge: {
-    offset: 0.003, // hinge axis sits this far outside the top of the outline
+    offset: 0.006, // hinge axis sits this far outside the top of the outline (lid clears the handle)
     openAngle: 102, // degrees, matches the open reference photo
     knuckles: [-0.1, 0.1], // x positions of the two hinges (as in the open photo)
     knuckleRadius: 0.0055,
     knuckleLength: 0.03,
   },
   insert: {
-    surfaceBelowSeam: 0.008, // support surface is this far below the rim
-    holeRadius: 0.108, // crown cavity radius
-    rollRadius: 0.006, // rounded velvet edge of the cavity
+    padThickness: 0.002, // velvet padding over the shallow part of the base
+    ringTop: -0.008, // top of the raised ring (below the seam)
+    ringInner: 0.095, // the crown passes through the ring (oval like the bowl)
+    ringOuter: 0.117,
+    ringRound: 0.008, // soft rounded top of the ring
     floorFillet: 0.012,
-    crownClearance: 0.006, // gap under the crown when the hat is in place
-    overlap: 0.0015, // support surface tucks into the side wall
+    crownClearance: 0.003, // gap under the crown when the hat is in place
+    overlap: 0.0015, // padding tucks into the side wall
   },
   label: {
     // small brand plate inside the lid
@@ -39,12 +40,13 @@ export const OPEN_CASE_PARAMS = {
 export const HAT_PARAMS = {
   brimRadius: 0.15, // reduced automatically if it does not fit the case
   brimThickness: 0.004,
+  brimCurl: 0.016, // brim edge curls down this much (the hat lies upside down)
   crownBaseRadius: 0.09, // outside of the crown where it meets the brim
   crownTopRadius: 0.068,
-  crownHeight: 0.112,
+  crownHeight: 0.102,
   crownTopRound: 0.028,
   crownDent: 0.014,
-  oval: 1.08, // head shape: front-to-back is longer than side-to-side
+  oval: 1.08, // head shape: front-to-back is longer than side-to-side (same as base.bowlOval)
   felt: 0.003,
   sweatbandDepth: 0.035,
   bandHeight: 0.03, // ribbon around the crown

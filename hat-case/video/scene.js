@@ -56,10 +56,12 @@ const addLight = (cfg, shadow) => {
   scene.add(l);
   return l;
 };
-addLight(LIGHTING.key, true);
-addLight(LIGHTING.front, false);
-addLight(LIGHTING.window, false);
-addLight(LIGHTING.fill, false);
+const lights = [
+  addLight(LIGHTING.key, true),
+  addLight(LIGHTING.front, false),
+  addLight(LIGHTING.window, false),
+  addLight(LIGHTING.fill, false),
+];
 
 // Table top that only receives the shadow (the wood itself is in the photo)
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity: LIGHTING.shadowOpacity }));
@@ -73,7 +75,7 @@ const placement = new THREE.Group();
 placement.name = 'CasePlacement';
 const lying = box.root;
 lying.rotation.x = -Math.PI / 2;
-const lowest = box.info.layout.zBackPlane - CASE_PARAMS.body.backDome;
+const lowest = box.info.layout.zBottom; // the case rests on the bottom of the bowl
 lying.position.set(0, -lowest, CASE_PARAMS.body.height / 2);
 placement.add(lying);
 placement.position.set(CASE_PLACEMENT.x, 0, CASE_PLACEMENT.z);
@@ -87,18 +89,14 @@ scene.add(placement);
   const cv = document.createElement('canvas');
   cv.width = cv.height = 512;
   const ctx = cv.getContext('2d');
-  ctx.filter = 'blur(8px)';
+  ctx.filter = 'blur(18px)';
   ctx.fillStyle = '#000';
+  // the case touches the table with the flat bottom of the bowl
+  const bc = L.bowlCenter;
+  const rad = CASE_PARAMS.base.bowlFlatRadius;
+  const toPx = (v) => (v / size + 0.5) * 512;
   ctx.beginPath();
-  L.outline.forEach(({ p }, i) => {
-    // case (x, y) -> world (x, -y + H/2) on the table; canvas spans +-size/2
-    const wx = p.x;
-    const wz = -p.y + CASE_PARAMS.body.height / 2;
-    const px = (wx / size + 0.5) * 512;
-    const py = (wz / size + 0.5) * 512;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  });
+  ctx.ellipse(toPx(bc.x), toPx(-bc.y + CASE_PARAMS.body.height / 2), (rad / size) * 512, ((rad * CASE_PARAMS.base.bowlOval) / size) * 512, 0, 0, Math.PI * 2);
   ctx.closePath();
   ctx.fill();
   const tex = new THREE.CanvasTexture(cv);
@@ -145,11 +143,13 @@ function renderReflection() {
   const bg = scene.background;
   scene.background = null;
   placement.scale.y = -1;
+  for (const l of lights) l.position.y *= -1; // the mirrored case is lit from below the table
   renderer.setRenderTarget(reflectionTarget);
   renderer.setClearColor(0x000000, 0);
   renderer.clear();
   renderer.render(scene, camera);
   renderer.setRenderTarget(null);
+  for (const l of lights) l.position.y *= -1;
   placement.scale.y = 1;
   scene.background = bg;
   contact.visible = true;
@@ -210,7 +210,7 @@ window.video = {
     const toWorld = (x, y, z) => lying.localToWorld(new THREE.Vector3(x, y, z)).toArray();
     const lid = box.lidPivot.children[0];
     const lidWorld = (x, y, z) => lid.localToWorld(new THREE.Vector3(x, y, z)).toArray();
-    const R = OPEN_CASE_PARAMS.insert.holeRadius + OPEN_CASE_PARAMS.insert.rollRadius;
+    const R = OPEN_CASE_PARAMS.insert.ringOuter;
     const hz = info.zs;
     const widest = L.outline.reduce((m, o) => (o.p.x > m.p.x ? o : m));
     return {
@@ -233,7 +233,7 @@ window.video = {
     const info = box.info;
     const ip = OPEN_CASE_PARAMS.insert;
     const L = info.layout;
-    const wall = OPEN_CASE_PARAMS.wall;
+    const wall = CASE_PARAMS.body.wall;
     const inner = L.outline.map(({ p, n }) => [p.x - n.x * wall, p.y - n.y * wall]);
     const distToWall = (x, y) => {
       let best = Infinity;
@@ -265,26 +265,55 @@ window.video = {
     };
     setTime(12);
     const hatPts = casePoints(box.hatHolder);
+    const oval = CASE_PARAMS.base.bowlOval;
+    const ellR = (p) => Math.hypot(p.x - info.hole.x, (p.y - info.hole.y) / oval);
+    // ring surface height at elliptical radius r (rounded top between ringInner and ringOuter)
+    const Ri = ip.ringInner;
+    const Ro = ip.ringOuter;
+    const rr = ip.ringRound;
+    const ringZ = (r) => {
+      if (r < Ri || r > Ro) return -Infinity;
+      if (r < Ri + rr) return info.zs - rr + Math.sqrt(Math.max(rr * rr - (Ri + rr - r) ** 2, 0));
+      if (r > Ro - rr) return info.zs - rr + Math.sqrt(Math.max(rr * rr - (r - (Ro - rr)) ** 2, 0));
+      return info.zs;
+    };
     let maxZ = -Infinity;
     let minZ = Infinity;
     let cavityMargin = Infinity;
     let wallMargin = Infinity;
-    let brimLowest = Infinity;
+    let ringGap = Infinity;
+    let brimPadGap = Infinity;
     for (const p of hatPts) {
-      const r = Math.hypot(p.x - info.hole.x, p.y - info.hole.y);
+      const r = ellR(p);
       maxZ = Math.max(maxZ, p.z);
       minZ = Math.min(minZ, p.z);
-      if (p.z < info.zs - 1e-4) cavityMargin = Math.min(cavityMargin, ip.holeRadius - r);
+      if (p.z < info.zs - rr && r <= Ro) cavityMargin = Math.min(cavityMargin, Ri - r);
       wallMargin = Math.min(wallMargin, distToWall(p.x, p.y));
-      if (r > ip.holeRadius + ip.rollRadius) brimLowest = Math.min(brimLowest, p.z);
+      if (r >= Ri && r <= Ro) ringGap = Math.min(ringGap, p.z - ringZ(r));
+      if (r > Ro) brimPadGap = Math.min(brimPadGap, p.z - info.pad);
     }
     // lid sweeping over the hat: lowest lid point above the hat footprint, per angle
     let lidGap = Infinity;
     let worstAngle = null;
     const reach = info.brimRadius * HAT_PARAMS.oval + 0.01;
+    // the handle must stay clear of the lid as it swings open
+    let lidHandleGap = Infinity;
+    const handlePts = casePoints(box.root.getObjectByName('Handle'));
     for (let a = 0; a <= 102; a += 3) {
       box.setLid(a);
-      for (const p of casePoints(box.lidPivot)) {
+      const lidPts = casePoints(box.lidPivot);
+      const cellOf = (p) => `${Math.round(p.x / 0.004)},${Math.round(p.y / 0.004)}`;
+      const lowestLid = new Map();
+      for (const p of lidPts) {
+        if (p.y <= CASE_PARAMS.body.height) continue;
+        const k = cellOf(p);
+        lowestLid.set(k, Math.min(lowestLid.get(k) ?? Infinity, p.z));
+      }
+      for (const h of handlePts) {
+        const z = lowestLid.get(cellOf(h));
+        if (z !== undefined) lidHandleGap = Math.min(lidHandleGap, z - h.z);
+      }
+      for (const p of lidPts) {
         if (Math.hypot(p.x - info.hole.x, p.y - info.hole.y) > reach) continue;
         const gap = p.z - maxZ;
         if (gap < lidGap) {
@@ -302,7 +331,7 @@ window.video = {
       grid.set(key, Math.min(grid.get(key) ?? Infinity, p.z));
     }
     let floorMargin = Infinity;
-    for (const p of casePoints(box.root.getObjectByName('InsertCavity'))) {
+    for (const p of casePoints(box.root.getObjectByName('InsertRing'))) {
       const zFloor = grid.get(`${Math.round(p.x / cell)},${Math.round(p.y / cell)}`);
       if (zFloor !== undefined) floorMargin = Math.min(floorMargin, p.z - zFloor);
     }
@@ -313,9 +342,11 @@ window.video = {
       brimLongRadius_mm: mm(info.brimRadius * HAT_PARAMS.oval),
       hatTopBelowSeam_mm: mm(info.seamZ - maxZ),
       crownAboveCavityFloor_mm: mm(minZ - info.zc),
-      crownToCavityWall_mm: mm(cavityMargin),
+      crownToRingInside_mm: mm(cavityMargin),
       hatToSideWall_mm: mm(wallMargin),
-      brimRestGapToSupport_mm: mm(brimLowest - info.zs),
+      hatOnRing_mm: mm(ringGap),
+      brimAbovePadding_mm: mm(brimPadGap),
+      lidAboveHandle_mm: mm(lidHandleGap),
       lidToHatMinGap_mm: mm(lidGap),
       lidAngleAtMinGap: worstAngle,
       cavityAboveBaseFloor_mm: mm(floorMargin),

@@ -9,7 +9,6 @@ export const CASE_PARAMS = {
   body: {
     width: 0.38, // overall body width (estimate of real size; proportions from photo)
     height: 0.49, // body height without the handle (photo ratio height/width = 1.29)
-    depth: 0.19, // front-to-back, including both domes (estimate; minimum that fits a 11 cm crown)
 
     // Silhouette (shield outline seen from the front)
     topBulge: 0.018, // how much the top edge arches up in the middle
@@ -17,19 +16,27 @@ export const CASE_PARAMS = {
     sideArcRadius: 0.42, // radius of the arcs that converge toward the bottom
     tipRadius: 0.085, // rounding of the bottom tip
 
-    // Volume
+    // Lid (front shell). Depths are measured from the seam (z = 0).
     frontEdgeRadius: 0.03, // rounding between the front face and the side wall
-    backEdgeRadius: 0.022, // rounding between the back face and the side wall (estimate)
     frontDome: 0.018, // how much the front face bulges outward
-    backDome: 0.006, // gentle bulge of the back (estimate)
+    lidSideHeight: 0.007, // straight side wall of the lid above the seam
+    wall: 0.004, // shell thickness (lining included)
   },
 
-  // Perimeter split line between the front shell and the back shell
+  // Base (back shell): shallow under the brim, a deep bowl under the crown
+  base: {
+    edgeInnerDepth: 0.03, // inside depth near the walls (brim area)
+    centerInnerDepth: 0.115, // inside depth at the center (crown area)
+    edgeRadius: 0.01, // rounding between the side wall and the back
+    bowlFlatRadius: 0.1, // flat bottom of the bowl (the case rests on it)
+    bowlRadius: 0.2, // where the bowl has risen back to the shallow back
+    bowlOval: 1.08, // bowl follows the oval of the crown (longer along the height)
+    backDome: 0.004, // gentle bulge of the shallow part of the back
+  },
+
+  // Perimeter split line between lid and base
   seam: {
-    position: 0.06, // 0 = right behind the front edge rounding, 1 = at the back edge
-    grooveDepth: 0.0026,
-    grooveWidth: 0.008,
-    pipingRadius: 0.0016, // thin warm-metal trim inside the groove
+    pipingRadius: 0.0016, // thin warm-metal trim on each rim
     pipingProtrusion: 0.0003, // how far the trim stands out of the side wall
   },
 
@@ -37,11 +44,11 @@ export const CASE_PARAMS = {
     outerWidth: 0.185, // outside-to-outside width of the bar at the top
     height: 0.068, // top of the handle above the top of the body
     thickness: 0.021, // in the plane of the front face
-    depth: 0.03, // front-to-back thickness of the bar (estimate)
+    depth: 0.024, // front-to-back thickness of the bar (estimate; fits the shallow base wall)
     cornerRadius: 0.042,
     legSpread: 0.022, // legs lean outward toward the base
-    zOffset: 0, // position along the depth (0 = middle of the side wall)
-    baseFlare: 1.4, // legs widen where they enter the body
+    zOffset: -0.003, // position along the depth (0 = middle of the base side wall)
+    baseFlare: 1.2, // legs widen where they enter the body
     flareLength: 0.022,
     embed: 0.012, // how deep the legs go into the body
   },
@@ -122,13 +129,6 @@ export const CASE_PARAMS = {
     ],
   },
 
-  // Simple back: gentle dome with one inset panel line (estimate)
-  back: {
-    panelLine: 0.86, // 0 = center, 1 = edge of the back face
-    panelDepth: 0.0012,
-    panelWidth: 0.004,
-  },
-
   materials: {
     shell: { color: '#232426', roughness: 0.58, metalness: 0.08, clearcoat: 0.18, clearcoatRoughness: 0.55 },
     handle: { color: '#202123', roughness: 0.5, metalness: 0.08 },
@@ -147,9 +147,8 @@ export const CASE_PARAMS = {
     perimeter: 512, // samples around the outline
     frontRings: 140,
     frontEdgeRings: 14,
-    sideRings: 44,
     backEdgeRings: 10,
-    backRings: 36,
+    backRings: 80,
     handlePath: 160,
     handleSection: 32,
     pipingSection: 12,

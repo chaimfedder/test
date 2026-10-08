@@ -7,7 +7,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CASE_PARAMS } from './caseParams.js';
-import { buildHatCase, setLogoTexture } from './caseModel.js';
+import { setLogoTexture } from './caseModel.js';
+import { HAT_PARAMS, OPEN_CASE_PARAMS } from './openCaseParams.js';
+import { buildHatCase } from './openCaseModel.js';
 
 const query = new URLSearchParams(location.search);
 const capture = query.get('capture') === '1';
@@ -91,7 +93,13 @@ async function buildModel() {
   } catch (e) {
     console.warn('logo texture not found, plate stays plain silver', e);
   }
-  model = buildHatCase(CASE_PARAMS, { logoTexture });
+  let labelTexture = null;
+  try {
+    labelTexture = await loadTexture(OPEN_CASE_PARAMS.label.texture);
+  } catch (e) {
+    console.warn('lid label texture not found', e);
+  }
+  model = buildHatCase(CASE_PARAMS, OPEN_CASE_PARAMS, HAT_PARAMS, { logoTexture, labelTexture });
   scene.add(model);
 }
 
@@ -106,8 +114,8 @@ const fitDistance = () => {
   const vFov = THREE.MathUtils.degToRad(camera.fov);
   const totalH = b.height + CASE_PARAMS.handle.height;
   const hDist = (totalH * 0.62) / Math.tan(vFov / 2);
-  const wDist = (Math.max(b.width, b.depth) * 0.62) / (Math.tan(vFov / 2) * camera.aspect);
-  return Math.max(hDist, wDist) + b.depth / 2;
+  const wDist = (b.width * 0.62) / (Math.tan(vFov / 2) * camera.aspect);
+  return Math.max(hDist, wDist) + 0.1;
 };
 const VIEWS = {
   front: (d) => new THREE.Vector3(0, targetY, d),
