@@ -151,11 +151,11 @@ function polygonSignedDistance(poly, x, y) {
 // Front relief (sculpted lines) as a height field over the front face
 // ---------------------------------------------------------------------------
 
-function buildReliefLines(params) {
+function buildReliefLines(params, defs = params.frontRelief.lines) {
   const { width: W, height: H } = params.body;
   const toModel = ([X, Y]) => [X * W, H * (1 - Y)];
   const lines = [];
-  for (const def of params.frontRelief.lines) {
+  for (const def of defs) {
     const variants = [{ pts: def.points, hint: def.raised }];
     if (def.mirror) {
       variants.push({ pts: def.points.map(([X, Y]) => [-X, Y]), hint: [-def.raised[0], def.raised[1]] });
@@ -505,9 +505,16 @@ export function computeLayout(params) {
     return 1 - smoothstep(base.bowlFlatRadius, base.bowlRadius, r);
   };
   // Outside of the back at (x, y); s = 0 at the center .. 1 at the edge rounding
+  // Relief lines on the back: the front's arch and sweeps, faded out on the
+  // flat bottom of the bowl (where the back plate sits)
+  const br = params.backRelief;
+  const backLines = buildReliefLines(params, rp.lines.filter((l) => br.lines.includes(l.name)));
+  const backRelief = (x, y, s, w) =>
+    reliefHeight(backLines, rp, x, y) * br.strength * (1 - smoothstep(rp.edgeFadeStart, 1, s)) * (1 - smoothstep(br.flatFadeStart, 0.97, w));
   const backZ = (x, y, s) => {
     const w = bowlWeight(x, y);
-    return zBaseBack - bowlDepth * w - base.backDome * (1 - s * s) * (1 - w);
+    // raised relief stands out of the back, i.e. toward -z
+    return zBaseBack - bowlDepth * w - base.backDome * (1 - s * s) * (1 - w) - backRelief(x, y, s, w);
   };
 
   return {

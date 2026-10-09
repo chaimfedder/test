@@ -550,10 +550,14 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
   const backPlate = buildPlate({ ...params, plate: bp }, layout, mats);
   backPlate.name = 'BackPlate';
   backPlate.rotation.y = Math.PI;
-  backPlate.position.z = layout.zBottom;
+  // smaller than the front plate, centred where the front plate's centre is
+  const sc = params.backPlate.scale;
+  const plateMidY = layout.plateTipY + params.plate.inner.height / 2;
+  backPlate.scale.setScalar(sc);
+  backPlate.position.set(0, plateMidY - (params.plate.inner.height / 2) * sc, layout.zBottom);
   base.add(backPlate);
   // lowest point when the case lies on its back (the plate's frame)
-  const zRest = layout.zBottom - (bp.frameThickness + 2 * bp.frameBevel - bp.embed);
+  const zRest = layout.zBottom - (bp.frameThickness + 2 * bp.frameBevel - bp.embed) * sc;
 
   // Hat, and the ring height that lands the crown's base exactly on the seam plane
   const ip = op.insert;

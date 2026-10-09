@@ -121,10 +121,19 @@ export const CASE_PARAMS = {
   // bottom of the bowl. Slimmer, because the case rests on it when it lies
   // on its back.
   backPlate: {
+    scale: 0.65, // smaller than the front plate
     frameThickness: 0.0012,
     frameBevel: 0.0006,
     faceRecess: 0.0005,
     faceThickness: 0.0008,
+  },
+
+  // Relief on the back: the same lines as the front (by name), with the
+  // same depths, faded out on the flat bottom of the bowl
+  backRelief: {
+    lines: ['topArch', 'sweepInner', 'sweepMiddle', 'sweepOuter'],
+    strength: 1,
+    flatFadeStart: 0.6, // bowl weight where the fade begins (1 = flat bottom)
   },
 
   // Relief lines on the front face. Points are normalized:
