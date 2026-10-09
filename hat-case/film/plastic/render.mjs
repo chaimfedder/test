@@ -8,6 +8,7 @@
 //   node film/plastic/render.mjs --frames-only    only (re)render missing frames
 //   node film/plastic/render.mjs --captions-only  only the caption layer (fast), then assemble
 //   node film/plastic/render.mjs --assemble-only  only build the videos, the mix and the subtitles
+//   node film/plastic/render.mjs --srt-only       only the subtitle file
 // Options: --workers=N (default 3)
 // Needs Playwright (Chromium), ffmpeg and python3 (numpy) for the music.
 
@@ -147,11 +148,15 @@ function srtTime(s) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')},${String(ms % 1000).padStart(3, '0')}`;
 }
 async function writeSubtitles() {
-  const cards = subtitleCards();
+  const cards = subtitleCards().map((c, i, a) => ({ ...c, end: i + 1 < a.length ? Math.min(c.end, a[i + 1].start - 0.05) : c.end }));
   const srt = cards.map((c, i) => `${i + 1}\n${srtTime(c.start)} --> ${srtTime(c.end)}\n‫${c.text}‬\n`).join('\n');
   await writeFile(`${OUT}/plastic-hat-case-film.he.srt`, srt);
 }
 
+if (args.has('--srt-only')) {
+  await writeSubtitles();
+  process.exit(0);
+}
 if (args.has('--captions-only')) await renderFrames(true);
 else if (!args.has('--assemble-only')) await renderFrames(false);
 if (!args.has('--frames-only')) {
