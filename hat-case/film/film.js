@@ -592,12 +592,12 @@ const SHOT = {
     box.hatHolder.visible = true;
     setXray(0);
     const hover = 0.24;
-    const lift = t < 12.3 ? lerp(0.66, hover, 1 - (1 - span(t, 0, 2.3)) ** 3) : hover * (1 - ease(span(t, 12.3, 15.9)));
+    const lift = t < 14.0 ? lerp(0.66, hover, 1 - (1 - span(t, 0, 2.3)) ** 3) : hover * (1 - ease(span(t, 14.0, 17.6)));
     box.setHatLift(lift);
     hat.rotation.y = 0;
     const a = camLying(0, 47, 1.1, [0, 0.17, -0.02]);
     const b = camLying(4, 44, 1.04, [0, 0.13, -0.02]);
-    setCamera(mixCam(a, b, ease(span(t, 0, 18))));
+    setCamera(mixCam(a, b, ease(span(t, 0, 19))));
     scene.updateMatrixWorld(true);
     const top = hp.brimThickness;
     const C = HAT_CUES;
@@ -621,10 +621,10 @@ const SHOT = {
       labelOffset: 120,
       side: -1,
     });
-    polyline(ovalAt(opening.x, opening.z, top).map(hatToWorld), { t, t0: C.circ, t1: C.circ + 2.5, draw: 1.2, color: GOLD, width: 3 });
-    if (t > C.circ + 0.7 && t < C.circ + 2.9) {
+    polyline(ovalAt(opening.x, opening.z, top).map(hatToWorld), { t, t0: C.circ, t1: C.circ + 2.2, draw: 1.2, color: GOLD, width: 3 });
+    if (t > C.circ + 0.7 && t < C.circ + 2.55) {
       const p = screen(hatToWorld([0, top, opening.z]));
-      pill(CAPTIONS.circumference, p[0], p[1] - 110 * S, span(t, C.circ + 0.7, C.circ + 1.2) * (1 - span(t, C.circ + 2.5, C.circ + 2.85)));
+      pill(CAPTIONS.circumference, p[0], p[1] - 110 * S, span(t, C.circ + 0.7, C.circ + 1.2) * (1 - span(t, C.circ + 2.2, C.circ + 2.55)));
     }
     dimension({
       a: hatToWorld([CROWN_BASE.x, top, 0]),
@@ -696,9 +696,9 @@ const SHOT = {
 };
 
 // Cue times tuned to the narration (seconds from the start of each shot)
-const DEPTH_CUES = { center: 1.2, centerOut: 3.8, edge: 4.15 };
-const HAT_CUES = { length: 2.6, width: 5.0, circ: 7.4, brim: 9.9 };
-const CLEARANCE_CUES = { crown: 1.2, crownOut: 3.85, clear: 4.15 };
+const DEPTH_CUES = { center: 1.2, centerOut: 4.9, edge: 5.3 };
+const HAT_CUES = { length: 2.8, width: 5.0, circ: 8.9, brim: 11.3 };
+const CLEARANCE_CUES = { crown: 1.5, crownOut: 4.6, clear: 4.95 };
 
 // ---------------------------------------------------------------------------
 // Frame rendering
