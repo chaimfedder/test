@@ -475,7 +475,7 @@ function subtitles(Tm) {
   const lh = 58 * S;
   const y0 = H - 70 * S - (lines.length - 1) * lh;
   const w = Math.max(...lines.map((l) => g.measureText(l).width)) + 48 * S;
-  g.fillStyle = 'rgba(10,10,12,0.66)';
+  g.fillStyle = 'rgba(10,10,12,0.84)';
   g.beginPath();
   g.roundRect(W / 2 - w / 2, y0 - lh / 2 - 6 * S, w, lh * lines.length + 12 * S, 10 * S);
   g.fill();
