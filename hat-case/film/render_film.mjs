@@ -161,7 +161,8 @@ if (!args.has('--frames-only')) {
   const x264 = ['-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p'];
   assembleLayer('final', `${OUT}/source/video-with-captions.mp4`, x264);
   assembleLayer('clean', `${OUT}/source/video-clean.mp4`, x264);
-  assembleLayer('captions', `${OUT}/source/captions-layer.mov`, ['-c:v', 'qtrle'], true);
+  // caption layer with transparency (VP9 + alpha; opens in Premiere, DaVinci Resolve, After Effects)
+  assembleLayer('captions', `${OUT}/source/captions-layer.webm`, ['-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-b:v', '0', '-crf', '30', '-row-mt', '1', '-cpu-used', '4'], true);
   mixAudio(`${OUT}/source/audio-mix.wav`);
   ff([
     '-i', `${OUT}/source/video-with-captions.mp4`, '-i', `${OUT}/source/audio-mix.wav`,
