@@ -106,7 +106,7 @@ scene.add(pivot);
 const body = CASE_PARAMS.body;
 const wall = body.wall;
 const frontApex = L.zFrontPlane + body.frontDome;
-const zMid = (frontApex + L.zBottom) / 2;
+const zMid = (frontApex + info.zRest) / 2;
 
 function setPose(orient, yawDeg = 0) {
   if (orient === 'standing') {
@@ -114,7 +114,7 @@ function setPose(orient, yawDeg = 0) {
     root.position.set(0, 0.0004, -zMid);
   } else {
     root.rotation.set(-Math.PI / 2, 0, 0);
-    root.position.set(0, -L.zBottom, body.height / 2);
+    root.position.set(0, -info.zRest, body.height / 2);
   }
   pivot.rotation.set(0, THREE.MathUtils.degToRad(yawDeg), 0);
   scene.updateMatrixWorld(true);

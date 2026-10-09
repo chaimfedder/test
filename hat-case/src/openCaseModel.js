@@ -544,6 +544,17 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
     mesh(buildHandle(params, layout), mats.handle, 'Handle'),
   );
 
+  // Brand plate on the back: same plate as the front, turned to face outward
+  // from the flat bottom of the bowl
+  const bp = { ...params.plate, ...params.backPlate };
+  const backPlate = buildPlate({ ...params, plate: bp }, layout, mats);
+  backPlate.name = 'BackPlate';
+  backPlate.rotation.y = Math.PI;
+  backPlate.position.z = layout.zBottom;
+  base.add(backPlate);
+  // lowest point when the case lies on its back (the plate's frame)
+  const zRest = layout.zBottom - (bp.frameThickness + 2 * bp.frameBevel - bp.embed);
+
   // Hat, and the ring height that lands the crown's base exactly on the seam plane
   const ip = op.insert;
   const hat = buildHat(hp);
@@ -620,7 +631,7 @@ export function buildOpenCase(params, op, hp, { logoTexture = null, labelTexture
     hatHolder,
     hatRest,
     materials: mats,
-    info: { hole, zs, zc, pad: levels.pad, ringTop: levels.ringTop, crown: CROWN_BASE, axisY, axisZ, seamZ: layout.seamZ, layout },
+    info: { zRest, hole, zs, zc, pad: levels.pad, ringTop: levels.ringTop, crown: CROWN_BASE, axisY, axisZ, seamZ: layout.seamZ, layout },
     setLid(deg) {
       lidPivot.rotation.x = -THREE.MathUtils.degToRad(deg);
     },

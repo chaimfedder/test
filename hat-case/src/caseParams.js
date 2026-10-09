@@ -117,6 +117,16 @@ export const CASE_PARAMS = {
     seatBlend: 0.007,
   },
 
+  // Same brand plate on the back, centred like the front one, on the flat
+  // bottom of the bowl. Slimmer, because the case rests on it when it lies
+  // on its back.
+  backPlate: {
+    frameThickness: 0.0012,
+    frameBevel: 0.0006,
+    faceRecess: 0.0005,
+    faceThickness: 0.0008,
+  },
+
   // Relief lines on the front face. Points are normalized:
   // X = -0.5 .. 0.5 across the width, Y = 0 (top) .. 1 (bottom tip).
   // `raised` is a direction (normalized coords) pointing to the side of the

@@ -76,7 +76,7 @@ const placement = new THREE.Group();
 placement.name = 'CasePlacement';
 const lying = box.root;
 lying.rotation.x = -Math.PI / 2;
-const lowest = box.info.layout.zBottom; // the case rests on the bottom of the bowl
+const lowest = box.info.zRest; // the case rests on the back plate at the bottom of the bowl
 lying.position.set(0, -lowest, CASE_PARAMS.body.height / 2);
 placement.add(lying);
 placement.position.set(CASE_PLACEMENT.x, 0, CASE_PLACEMENT.z);
