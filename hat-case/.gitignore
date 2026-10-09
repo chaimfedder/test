@@ -2,3 +2,4 @@ node_modules/
 __pycache__/
 video/frames/
 film/frames/
+film/plastic/frames/

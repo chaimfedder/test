@@ -11,7 +11,7 @@ import * as THREE from 'three';
 // top arc -> rounded top corners -> straight sides -> side arcs -> round tip.
 // Coordinates: x in [-width/2, width/2], y in [0, height], tip at (0, 0).
 
-function shieldPieces(p) {
+export function shieldPieces(p) {
   const W2 = p.width / 2;
   const H = p.height;
   const sb = Math.max(p.topBulge, 1e-5);
@@ -151,7 +151,7 @@ function polygonSignedDistance(poly, x, y) {
 // Front relief (sculpted lines) as a height field over the front face
 // ---------------------------------------------------------------------------
 
-function buildReliefLines(params, defs = params.frontRelief.lines) {
+export function buildReliefLines(params, defs = params.frontRelief.lines) {
   const { width: W, height: H } = params.body;
   const toModel = ([X, Y]) => [X * W, H * (1 - Y)];
   const lines = [];
@@ -178,7 +178,7 @@ function buildReliefLines(params, defs = params.frontRelief.lines) {
   return lines;
 }
 
-function reliefHeight(lines, rp, x, y) {
+export function reliefHeight(lines, rp, x, y) {
   const reach = Math.max(rp.stepReach * 2.5, rp.grooveSigma * 4);
   let h = 0;
   for (const L of lines) {
