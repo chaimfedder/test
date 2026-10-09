@@ -7,6 +7,7 @@
 //   node film/render_film.mjs --frames-only    only (re)render missing frames
 //   node film/render_film.mjs --assemble-only  only build the videos and the mix
 //   node film/render_film.mjs --audio-only     only the sound mix
+//   node film/render_film.mjs --captions-only  only the caption layer, composited over the 3D frames
 // Needs Playwright (Chromium), ffmpeg and python3 (numpy) for the music.
 
 import { createRequire } from 'node:module';
@@ -122,6 +123,33 @@ function mixAudio(dst) {
   ff([...inputs, '-filter_complex', graph, '-map', '[out]', '-ar', '48000', '-c:a', 'pcm_s16le', dst]);
 }
 
+// Regenerate only the caption layer (fast, no 3D), then composite it over the clean frames
+async function renderCaptions() {
+  const { chromium } = require('playwright');
+  const port = 8000 + Math.floor(Math.random() * 900);
+  const server = await startServer(port);
+  const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+  const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+  page.on('pageerror', (e) => console.error('page error:', e.message));
+  await page.goto(`http://localhost:${port}/film/index.html?w=${FILM.width}&h=${FILM.height}`);
+  await page.waitForFunction(() => window.film?.ready, null, { timeout: 300000 });
+  for (let i = 0; i < SHOTS.length; i++) {
+    const n = Math.round(SHOTS[i].duration * FILM.fps);
+    for (let f = 0; f < n; f++) {
+      const url = await page.evaluate(([i, t]) => window.film.renderOverlay(i, t), [i, f / FILM.fps]);
+      await writeFile(`${dir('captions', i)}/${pad(f)}.png`, Buffer.from(url.split(',')[1], 'base64'));
+    }
+    console.log(`captions shot ${i} done`);
+  }
+  await browser.close();
+  server.close();
+  execFileSync('python3', [`${ROOT}film/composite.py`], { stdio: 'inherit' });
+}
+
+if (args.has('--captions-only')) {
+  await renderCaptions();
+  process.exit(0);
+}
 if (args.has('--audio-only')) {
   await mkdir(`${OUT}/source`, { recursive: true });
   mixAudio(`${OUT}/source/audio-mix.wav`);

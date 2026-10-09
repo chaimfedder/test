@@ -208,7 +208,10 @@ const ease = (u) => {
   return t * t * t * (t * (t * 6 - 15) + 10);
 };
 const lerp = (a, b, t) => a + (b - a) * t;
-const span = (t, a, b) => Math.min(Math.max((t - a) / (b - a), 0), 1);
+const span = (t, a, b) => {
+  if (!Number.isFinite(a)) return 0; // e.g. a caption with no end time never fades out
+  return Math.min(Math.max((t - a) / (b - a), 0), 1);
+};
 function setCamera({ target, az, el, dist, fov = 30 }) {
   const [tx, ty, tz] = target;
   camera.fov = fov;
@@ -703,6 +706,14 @@ const CLEARANCE_CUES = { crown: 1.2, crownOut: 3.85, clear: 4.15 };
 
 await document.fonts.load(`500 ${Math.round(34 * S)}px Heebo`, 'אורך 37.41');
 
+// Caption layer only (the 3D frame is not rendered): same state as renderFrame
+function renderOverlay(shotIndex, t) {
+  const shot = SHOTS[shotIndex];
+  g.clearRect(0, 0, W, H);
+  SHOT[shot.id](t, shot.duration);
+  return overlay.toDataURL('image/png');
+}
+
 function renderFrame(shotIndex, t, withLayers = false) {
   const shot = SHOTS[shotIndex];
   g.clearRect(0, 0, W, H);
@@ -726,6 +737,7 @@ window.film = {
   ready: true,
   shots: SHOTS.map((s) => ({ id: s.id, duration: s.duration })),
   renderFrame,
+  renderOverlay,
   checks: () => checks,
   ringLip,
 };
