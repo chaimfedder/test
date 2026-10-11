@@ -1,0 +1,7 @@
+__pycache__/
+out/raw/
+out/frames/
+out/preview/
+out/*.log
+out/narration_mix.wav
+out/preview_edit.mp4

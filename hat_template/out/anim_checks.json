@@ -1,0 +1,56 @@
+{
+ "legs": {
+  "frames": 113,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "walls": {
+  "frames": 181,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "locks": {
+  "frames": 181,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "risers": {
+  "frames": 301,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "hat_in": {
+  "frames": 106,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "cutaway": {
+  "frames": 1,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "bag": {
+  "frames": 136,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "end": {
+  "frames": 151,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ },
+ "intro": {
+  "frames": 151,
+  "frames_with_collision": 0,
+  "first": [],
+  "lowest_point_mm": 0.05
+ }
+}
