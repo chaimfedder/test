@@ -176,7 +176,7 @@ if __name__ == "__main__":
     p, D, panels, blank, cut_lines, folds, waste = geometry()
     write_svg(OUT / "dieline.svg", blank, cut_lines, folds, waste)
     write_dxf(OUT / "dieline.dxf", cut_lines, folds, waste)
-    preview(OUT / "layout_preview.png", OUT / "layout_prototype.pdf", p, D, panels, blank, cut_lines, folds, waste)
+    preview(OUT / "layout_preview.png", None, p, D, panels, blank, cut_lines, folds, waste)
     V = OUT / "layout_variants"
     V.mkdir(exist_ok=True)
     for name, f in (("frame", {"deck", "leg", "strip", "wall", "rim"}), ("risers", {"riser", "riser_tongue"}),

@@ -210,8 +210,11 @@ def upright(pt):
     return (x, -y, ZMAX - z)
 
 
+S02_MAP = {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 3, 6: 4, 7: 4}     # subtitle chunk -> visual
+
+
 def s02(tau, ctx):
-    k = phase(tau, ctx["times"])
+    k = S02_MAP[phase(tau, ctx["times"])]
     a_h, b_h, zt = D["a_h"], D["b_h"], D["Hs"] + SEAT
     if k == 0:
         im = load_img(str(FR / "stills" / "hat_3q.png")).copy()
@@ -262,7 +265,7 @@ def s03(tau, ctx):
     k = phase(tau, ctx["times"])
     im = load_img(str(OUT / "compare.png")).copy()
     d = ImageDraw.Draw(im, "RGBA")
-    focus = None if k == 0 else (0 if k <= 2 else 1 if k <= 4 else 2)   # 0 = A (right third)
+    focus = None if k == 0 else (0 if k <= 3 else 1 if k <= 5 else 2)   # 0 = A (right third)
     if focus is not None:
         for j in range(3):
             x0 = W - (j + 1) * W / 3
@@ -391,7 +394,7 @@ def s09(tau, ctx):
     ap = panel_point("R_D_tab", (0.5, 0.98)); ap = (ap[0], ap[1], D["Hs"])
     callout(d, P2(cam, ap), (330, 300), "מגע: השוליים על קודקוד התמיכה", COL["green"], 30)
     tip = (0, -40, HM["crown_tip_lowest"])
-    callout(d, P2(cam, tip), (1300, 990), f"קצה הכתר {HM['crown_tip_clearance_to_floor'] / 10:.1f} ס״מ מעל התחתית", COL["red"], 30)
+    callout(d, P2(cam, tip), (1500, 880), f"קצה הכתר {HM['crown_tip_clearance_to_floor'] / 10:.1f} ס״מ מעל התחתית", COL["red"], 30)
     bl = (D["b_b"] * 0.0 - 120, -D["b_b"] + 20, HM["brim_lowest"] - 2)
     callout(d, P2(cam, (-150, -95, D["Hd"])), (330, 640), f"משטח {cm(D['Hd'], 0)} ס״מ · {HM['brim_lowest_minus_deck']:.0f} מ״מ מתחת לשוליים", COL["brown"], 30)
     callout(d, P2(cam, (D["L"] / 2, 60, 125)), (1620, 300), f"{PL['brim_to_wall_x']:.0f} מ״מ בין השוליים לדופן", COL["blue"], 30)
@@ -450,12 +453,35 @@ SCENES = [("s01_intro", s01, anim.INTRO_LEN), ("s02_hat", s02, 0), ("s03_options
           ("s11_bag", s11, anim.BAG_LEN + 3), ("s12_end", s12, anim.END_LEN + 6)]
 
 
+def silences(sid):
+    """mid-points of pauses in the narration (used to snap subtitle boundaries)."""
+    err = subprocess.run(["ffmpeg", "-v", "info", "-i", str(AUD / f"{sid}.mp3"), "-af", "silencedetect=n=-38dB:d=0.15",
+                          "-f", "null", "-"], capture_output=True, text=True).stderr
+    st = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", err)]
+    en = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", err)]
+    return [(a + b) / 2 for a, b in zip(st, en)]
+
+
+def snap(times, sil, al):
+    out, prev = [], 0.0
+    for i, (a, b, c) in enumerate(times):
+        if i < len(times) - 1:
+            cand = [m for m in sil if abs(m - b) < 1.3 and m > prev + 0.6]
+            if cand:
+                b = min(cand, key=lambda m: abs(m - b))
+        else:
+            b = al
+        out.append((prev, b, c))
+        prev = b
+    return out
+
+
 def build_timeline():
     tl, t = [], 0.0
     for sid, fn, vis in SCENES:
         al = audio_len(sid)
         dur = max(al + AUDIO_OFF + TAIL, vis)
-        times = sentence_times(NARR[sid], al)
+        times = snap(sentence_times(NARR[sid], al), silences(sid), al)
         tl.append(dict(sid=sid, fn=fn, start=t, dur=dur, audio=al, times=times))
         t += dur
     return tl, t

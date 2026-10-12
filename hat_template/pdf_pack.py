@@ -85,7 +85,7 @@ def report_page(pdf):
         (f"מעטפת כתר (הנחה +2 מ״מ לצד): {PL['crown_envelope'][0] / 10:.2f} × {PL['crown_envelope'][1] / 10:.2f} ס״מ · מעטפת שוליים: {PL['brim_envelope'][0] / 10:.2f} × {PL['brim_envelope'][1] / 10:.2f} ס״מ.", 13, 400),
         (f"פתח מרכזי: {PL['hole'][0] / 10:.1f} × {PL['hole'][1] / 10:.1f} ס״מ · מרווח מינימלי כתר–פתח: {PL['crown_to_hole_min_gap']:.1f} מ״מ.", 13, 400),
         (f"גבהים: משטח {H['deck_top']:.0f} · מגע {H['support_contact']:.0f} · מסגרת {H['frame_top_short']:.0f} מ״מ (לשוניות נעילה עד {H['frame_top_long_incl_lock_tabs']:.1f}).", 13, 400),
-        (f"קצה הכתר: {H['crown_tip_lowest']:.1f} מ״מ מעל התחתית (יעד ≥ 15) · שוליים מעל המשטח: {H['brim_lowest_minus_deck']:.1f} מ״מ · מסגרת מעל השוליים: {H['frame_top_minus_brim_highest']:.1f} מ״מ.", 13, 400),
+        (f"קצה הכתר: {H['crown_tip_lowest']:.1f} מ״מ מעל התחתית (יעד: לפחות 15) · שוליים מעל המשטח: {H['brim_lowest_minus_deck']:.1f} מ״מ · מסגרת מעל השוליים: {H['frame_top_minus_brim_highest']:.1f} מ״מ.", 13, 400),
         (f"מרווח שוליים–דפנות: {PL['brim_to_wall_x']:.1f} מ״מ לאורך, {PL['brim_to_wall_y']:.1f} מ״מ לרוחב.", 13, 400),
         (f"תבנית מורכבת: {PL['template_outer'][0] / 10:.1f} × {PL['template_outer'][1] / 10:.1f} × {D['Hf'] / 10:.1f} ס״מ · גיליון שטוח: {C['flat']['sheet_bbox_mm'][0] / 10:.1f} × {C['flat']['sheet_bbox_mm'][1] / 10:.1f} ס״מ.", 13, 700),
         (f"שקית (נגזרת מהתבנית): חלל לפחות {C['bag_min_inner_mm'][0] / 10:.1f} × {C['bag_min_inner_mm'][1] / 10:.1f} ס״מ, גובה שימושי 15 ס״מ; בסרטון 36 × 33 × 15.", 13, 700),
