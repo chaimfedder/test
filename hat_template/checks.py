@@ -266,7 +266,36 @@ def run():
                clear_insert_x=bag["inner_L"] / 2 - tx, clear_insert_y=bag["inner_W"] / 2 - ty,
                clear_insert_top=bag["inner_H"] - tz)
     bag["insert_fits"] = min(bag["clear_insert_x"], bag["clear_insert_y"], bag["clear_insert_top"]) > 0
-    rep["bag"] = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in bag.items()}
+    rep["bag_lying_old"] = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in bag.items()}
+
+    # ---- 5b. bag, insert STANDING on its side (hat on its side): rotate insert+hat about the long axis.
+    #      insert floor (z=0) against the bag back wall, a long wall of the insert on the bag floor.
+    #      length: hat + 2 cm each side; depth: back wall -> hat front + 2 cm; height: floor -> hat top + 2 cm.
+    #      Behind and below the hat the insert itself sets the gap (it touches the back wall and the floor).
+    Ry = lambda A: np.c_[A[:, 0], -A[:, 2], A[:, 1]]            # (x, y, z) -> (x, -z, y)
+    HV, IV = Ry(V), Ry(TV)
+    z0 = IV[:, 2].min()                                          # insert stands on the bag floor
+    HV[:, 2] -= z0
+    IV[:, 2] -= z0
+    sb = dict(orientation="standing - hat on its side, long axis horizontal",
+              hat_envelope_L=2 * hx, hat_envelope_H=float(HV[:, 2].max() - HV[:, 2].min()),
+              hat_envelope_D=float(HV[:, 1].max() - HV[:, 1].min()))
+    sb["inner_L"] = 2 * hx + 2 * cs
+    sb["inner_D"] = -float(HV[:, 1].min()) + cs                 # back wall at y=0
+    sb["inner_H"] = float(HV[:, 2].max()) + ct
+    sb.update(outer_L=sb["inner_L"] + 2 * bw, outer_D=sb["inner_D"] + 2 * bw, outer_H=sb["inner_H"] + bf,
+              wall=bw, floor=bf)
+    sb["clear_hat_side"] = sb["inner_L"] / 2 - hx
+    sb["clear_hat_front"] = sb["inner_D"] + float(HV[:, 1].min())
+    sb["clear_hat_top"] = sb["inner_H"] - float(HV[:, 2].max())
+    sb["gap_hat_back_wall"] = -float(HV[:, 1].max())
+    sb["gap_hat_floor"] = float(HV[:, 2].min())
+    sb["clear_insert_side"] = sb["inner_L"] / 2 - float(np.abs(IV[:, 0]).max())
+    sb["clear_insert_front"] = sb["inner_D"] + float(IV[:, 1].min())
+    sb["clear_insert_top"] = sb["inner_H"] - float(IV[:, 2].max())
+    sb["insert_fits"] = min(sb["clear_insert_side"], sb["clear_insert_front"], sb["clear_insert_top"]) > 0
+    sb["insert_lift_mm"] = -z0                                   # insert centre height above bag floor
+    rep["bag"] = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in sb.items()}
 
     with open(OUT / "checks.json", "w") as f:
         json.dump(rep, f, ensure_ascii=False, indent=1, default=float)

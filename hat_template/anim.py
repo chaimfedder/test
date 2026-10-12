@@ -214,7 +214,7 @@ def _bag():
     """Bag cavity from checks.json (hat envelope + 2 cm); never a preset size."""
     import json
     from pathlib import Path
-    b = json.load(open(Path(__file__).parent / "out" / "checks.json"))["bag"]
+    b = json.load(open(Path(__file__).parent / "out" / "checks.json"))["bag_lying_old"]  # long explainer (old lying layout)
     return dict(inner_L=b["inner_L"], inner_W=b["inner_W"], inner_H=b["inner_H"], wall=b["wall"], floor=b["floor"],
                 total_H=b["floor"] + b["inner_H"])
 
