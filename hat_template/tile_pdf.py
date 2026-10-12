@@ -101,6 +101,83 @@ def draw_dieline(ax, panels, blank, cut_lines, folds, waste, pts, labels=True, s
         T((b[0] + 40, b[3] - 18), "משטח", 13)
 
 
+PART_NAMES = {"deck": "משטח"}
+
+
+def part_name(n, panels):
+    if n == "deck":
+        return "משטח"
+    if n.startswith("R_"):
+        return "תמיכה " + panels[n[:3] + "_tab"].label
+    s = n[1]
+    if "_leg" in n:
+        return f"רגל {s}"
+    if "_wall" in n or "_strip" in n:
+        return f"דופן {s}"
+    if "_rim" in n:
+        return f"שפת פינה (דופן {s})"
+    return n
+
+
+def label_points(panels):
+    C = lambda n, f=(0.5, 0.5): (lambda b: (b[0] + (b[2] - b[0]) * f[0], b[1] + (b[3] - b[1]) * f[1]))(panels[n].poly.bounds)
+    pts = [C(n) for n in panels if n.endswith(("_wall", "_leg", "_ret")) or "_rim" in n]
+    b = panels["deck"].poly.bounds
+    pts.append((b[0] + 40, b[3] - 18))
+    return pts
+
+
+INSET_W, INSET_H = 54.0, 50.0
+
+
+def find_inset_spot(win, obstacles):
+    """Lower-left-first search for an empty rectangle inside the page (away from overlap strips)."""
+    x0, y0, x1, y1 = win
+    best = None
+    for yy in np.arange(y0 + OV + 3, y1 - OV - 3 - INSET_H, 3.0):
+        for xx in np.arange(x0 + OV + 3, x1 - OV - 3 - INSET_W, 3.0):
+            r = box(xx, yy, xx + INSET_W, yy + INSET_H)
+            if not r.intersects(obstacles):
+                return (xx, yy)
+    return best
+
+
+def draw_inset(ax, spot, pg, pages, blank, panels, cut_lines, folds, waste, names, total):
+    """Small map of the whole template with this page highlighted, page id and the parts on it."""
+    xx, yy = spot
+    ax.add_patch(Rectangle((xx, yy), INSET_W, INSET_H, facecolor="white", edgecolor="black", lw=0.8, zorder=20))
+    allb = np.array([q["win"] for q in pages])
+    gx0, gy0, gx1, gy1 = allb[:, 0].min(), allb[:, 1].min(), allb[:, 2].max(), allb[:, 3].max()
+    mw, mh = INSET_W - 4, INSET_H - 24
+    sc = min(mw / (gx1 - gx0), mh / (gy1 - gy0))
+    ox = xx + 2 + (mw - (gx1 - gx0) * sc) / 2
+    oy = yy + 2
+    T = lambda X, Y: (ox + (X - gx0) * sc, oy + (Y - gy0) * sc)
+    for c in cut_lines:
+        P_ = np.array([T(*q) for q in c])
+        ax.plot(P_[:, 0], P_[:, 1], color="black", lw=0.35, zorder=21)
+    for q in pages:
+        if "n" not in q:
+            continue
+        a = T(q["win"][0], q["win"][1])
+        me = q is pg
+        ax.add_patch(Rectangle(a, CW * sc, CH * sc, facecolor="#555" if me else "none", alpha=0.45 if me else 1,
+                               edgecolor="black", lw=0.6 if me else 0.25, zorder=22))
+        ctr = T((q["win"][0] + q["win"][2]) / 2, (q["win"][1] + q["win"][3]) / 2)
+        ax.text(ctr[0], ctr[1], q["id"], ha="center", va="center", fontsize=4.2 if not me else 6,
+                weight=700, color="black", zorder=23)
+    ax.text(xx + INSET_W - 2.5, yy + INSET_H - 5, "דף " + pg["id"], ha="right", va="center",
+            fontsize=13, weight=700, zorder=23)
+    ax.text(xx + 2.5, yy + INSET_H - 5, f"{pg['n']}/{total}", ha="left", va="center", fontsize=9, zorder=23)
+    txt = "חלקים בדף: " + (", ".join(names) if names else "שוליים בלבד")
+    maxc = int(INSET_W * 0.95)
+    if len(txt) > maxc:                       # wrap at a comma near the middle
+        cut = txt.rfind(",", 0, maxc)
+        txt = txt[:cut + 1] + "\n" + txt[cut + 2:]
+    ax.text(xx + INSET_W - 2.5, yy + INSET_H - 13, txt, ha="right", va="center", fontsize=6.0,
+            zorder=23, linespacing=1.3)
+
+
 def grid(bounds):
     x0, y0, x1, y1 = bounds
     x0, y0, x1, y1 = x0 - PAD, y0 - PAD, x1 + PAD, y1 + PAD
@@ -123,6 +200,7 @@ def page_has_geometry(win, blank):
 
 
 def main():
+    global INSET_W, INSET_H
     p, D, panels, blank, cut_lines, folds, waste = layout.geometry()
     pts = mark_points(cut_lines, folds)
     pages, nr, nc = grid(blank.bounds)
@@ -132,6 +210,11 @@ def main():
     t = p["board_thickness"]
     W = blank.bounds[2] - blank.bounds[0]
     Hh = blank.bounds[3] - blank.bounds[1]
+    lines_ = [LineString(c) for c in cut_lines] + [LineString(h) for h, k, n in folds]
+    from shapely.ops import unary_union as _uu
+    from shapely.geometry import Point
+    OBST = _uu([g.buffer(3.0) for g in lines_] + [Point(*q).buffer(3.5) for q in pts] +
+               [Point(*q).buffer(16.0) for q in label_points(panels)])
     path = OUT / "template_A4_1to1.pdf"
     with PdfPages(path) as pdf:
         # ------------------------------------------------ cover page
@@ -204,6 +287,23 @@ def main():
             if pg["r"] < nr - 1 and any(q.get("n") and q["c"] == pg["c"] and q["r"] == pg["r"] + 1 for q in pages):
                 ax.add_patch(Rectangle((x0, y0), CW, OV, color="#e9e9e9", zorder=0))
             draw_dieline(ax, panels, blank, cut_lines, folds, waste, pts)
+            # parts on this page + inset map placed in an empty spot
+            wbox = box(*pg["win"]).buffer(-1)
+            names = []
+            for n, pn in panels.items():
+                if pn.poly.intersection(wbox).area > 150:
+                    nm_ = part_name(n, panels)
+                    if nm_ not in names:
+                        names.append(nm_)
+            spot = None
+            for INSET_W, INSET_H in ((54.0, 50.0), (46.0, 42.0), (40.0, 37.0)):
+                spot = find_inset_spot(pg["win"], OBST)
+                if spot is not None:
+                    break
+            if spot is not None:
+                draw_inset(ax, spot, pg, pages, blank, panels, cut_lines, folds, waste, names, len(used))
+            else:
+                print("no free spot on page", pg["id"])
             # registration crosses on the page-grid lines (they appear on both neighbouring pages)
             for gx_ in (x0 + OV / 2, x1 - OV / 2):
                 for gy_ in (y0 + OV / 2, y1 - OV / 2, (y0 + y1) / 2):
