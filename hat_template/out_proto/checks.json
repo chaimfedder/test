@@ -1,0 +1,242 @@
+{
+ "params": {
+  "head_circumference": 580.0,
+  "head_oval_diff": 40.0,
+  "crown_height": 105.0,
+  "brim_width": 60.0,
+  "crown_ease_per_side": 2.0,
+  "bottom_clearance": 15.0,
+  "brim_cavity_below_support": 30.0,
+  "brim_side_drop": 20.0,
+  "brim_front_rise": 12.0,
+  "brim_thickness": 2.5,
+  "board_thickness": 3.5,
+  "hole_clearance": 6.0,
+  "hole_corner_radius": 45.0,
+  "brim_side_clearance": 10.0,
+  "frame_height": 140.0,
+  "short_rim_depth": 24.0,
+  "rim_flap_length": 30.0,
+  "short_wall_ear": 8.0,
+  "lock_tab_width": 12.0,
+  "lock_tab_height": 6.5,
+  "lock_tab_ear": 1.0,
+  "lock_tab_inset": 9.0,
+  "riser_base_depth": 20.0,
+  "riser_width_long": 60.0,
+  "riser_width_short": 40.0,
+  "riser_tongue_length": 10.0,
+  "riser_tongue_width_ratio": 0.5,
+  "leg_corner_gap": 4.5,
+  "kerf_gap": 0.0,
+  "bag_side_clearance": 20.0,
+  "bag_top_clearance": 20.0,
+  "bag_wall_thickness": 2.0,
+  "bag_floor_thickness": 3.0
+ },
+ "derived": {
+  "t": 3.5,
+  "a_h": 102.038,
+  "b_h": 82.038,
+  "a_c": 104.038,
+  "b_c": 84.038,
+  "a_b": 164.038,
+  "b_b": 144.038,
+  "Hs": 120.0,
+  "Hd": 90.0,
+  "Hf": 140.0,
+  "hx": 110.038,
+  "hy": 90.038,
+  "L": 344.576,
+  "W": 304.576,
+  "riser_a": 30.0,
+  "riser_b": 33.773,
+  "riser_d": 20.0,
+  "riser_alpha": 36.313,
+  "hS": 86.5,
+  "hO_short": 136.5,
+  "hO_long": 134.25,
+  "r": 24.0,
+  "crown_tip_z": 15.0,
+  "outer_L": 355.076,
+  "outer_W": 327.576,
+  "outer_H": 140.0
+ },
+ "flat": {
+  "single_piece": true,
+  "pieces": 1,
+  "max_panel_overlap_mm2": 0.0,
+  "sheet_bbox_mm": [
+   845.6,
+   766.1
+  ],
+  "part_area_m2": 0.3777,
+  "factory_waste_hole_m2": 0.0242
+ },
+ "rigid_panels_max_edge_change_mm": 2.842170943040401e-14,
+ "hat_seat_dz_mm": -0.014,
+ "folded_collisions_with_hat_lifted_0.2mm": [
+  [
+   "S1_wall",
+   "S2_rima"
+  ],
+  [
+   "S1_wall",
+   "S4_rimb"
+  ],
+  [
+   "S2_rimb",
+   "S3_wall"
+  ],
+  [
+   "S3_wall",
+   "S4_rima"
+  ]
+ ],
+ "folded_collisions": [
+  [
+   "S1_wall",
+   "S2_rima"
+  ],
+  [
+   "S1_wall",
+   "S4_rimb"
+  ],
+  [
+   "S2_rimb",
+   "S3_wall"
+  ],
+  [
+   "S3_wall",
+   "S4_rima"
+  ]
+ ],
+ "heights_mm": {
+  "deck_top": 90.0,
+  "support_contact": 120.0,
+  "crown_tip_lowest": 14.99,
+  "crown_tip_clearance_to_floor": 14.99,
+  "brim_lowest": 99.99,
+  "brim_highest": 134.49,
+  "brim_lowest_minus_deck": 9.99,
+  "frame_top_short": 140.0,
+  "frame_top_long_incl_lock_tabs": 144.25,
+  "frame_top_minus_brim_highest": 5.51
+ },
+ "plan_mm": {
+  "brim_envelope": [
+   328.08,
+   288.08
+  ],
+  "crown_envelope": [
+   208.08,
+   168.08
+  ],
+  "head_opening": [
+   204.08,
+   164.08
+  ],
+  "head_perimeter_check": 580.0,
+  "hole": [
+   220.08,
+   180.08
+  ],
+  "interior": [
+   348.08,
+   308.08
+  ],
+  "brim_to_wall_x": 10.0,
+  "brim_to_wall_y": 10.0,
+  "template_outer": [
+   355.1,
+   327.6,
+   144.3
+  ],
+  "crown_to_hole_min_gap": 6.0
+ },
+ "hat_min_distance_mm": {
+  "crown_outer": [
+   4.54,
+   "R_A_tab"
+  ],
+  "brim": [
+   0.32,
+   "R_A_ret"
+  ]
+ },
+ "hat_support_contacts": [
+  "R_A_ret",
+  "R_C_ret"
+ ],
+ "hat_gap_per_support_mm": {
+  "R_A": 1.26,
+  "R_B": 1.95,
+  "R_C": 1.26,
+  "R_D": 1.95
+ },
+ "hat_insertion_collisions": [],
+ "rim_slot_to_tab_offset_mm": [
+  0.0,
+  0.0,
+  0.0,
+  0.0
+ ],
+ "slot_sizes_mm": {
+  "rim_slot": [
+   4.5,
+   13.0
+  ],
+  "rim_tab_with_ears": 14.0,
+  "riser_slot": [
+   31.0,
+   12.0
+  ]
+ },
+ "bag_lying_old": {
+  "hat_envelope_L": 328.08,
+  "hat_envelope_W": 288.08,
+  "hat_top": 134.49,
+  "inner_L": 368.08,
+  "inner_W": 328.08,
+  "inner_H": 154.49,
+  "outer_L": 372.08,
+  "outer_W": 332.08,
+  "outer_H": 157.49,
+  "wall": 2.0,
+  "floor": 3.0,
+  "clear_hat_x": 20.0,
+  "clear_hat_y": 20.0,
+  "clear_hat_top": 20.0,
+  "insert_L": 355.08,
+  "insert_W": 327.58,
+  "insert_H": 142.5,
+  "clear_insert_x": 6.5,
+  "clear_insert_y": 0.25,
+  "clear_insert_top": 11.99,
+  "insert_fits": true
+ },
+ "bag": {
+  "orientation": "standing - hat on its side, long axis horizontal",
+  "hat_envelope_L": 328.08,
+  "hat_envelope_H": 288.08,
+  "hat_envelope_D": 119.5,
+  "inner_L": 368.08,
+  "inner_D": 154.49,
+  "inner_H": 327.83,
+  "outer_L": 372.08,
+  "outer_D": 158.49,
+  "outer_H": 330.83,
+  "wall": 2.0,
+  "floor": 3.0,
+  "clear_hat_side": 20.0,
+  "clear_hat_front": 20.0,
+  "clear_hat_top": 20.0,
+  "gap_hat_back_wall": 14.99,
+  "gap_hat_floor": 19.75,
+  "clear_insert_side": 6.5,
+  "clear_insert_front": 11.99,
+  "clear_insert_top": 0.25,
+  "insert_fits": true,
+  "insert_lift_mm": 163.79
+ }
+}

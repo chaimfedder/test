@@ -18,7 +18,8 @@ from shapely.ops import unary_union
 import model
 
 HERE = Path(__file__).parent
-OUT = HERE / "out"
+import os
+OUT = HERE / os.environ.get("HAT_OUT", "out")
 OUT.mkdir(exist_ok=True)
 
 SHRINK = 0.15      # mm, removes exact face-to-face contacts from the collision test
@@ -239,7 +240,7 @@ def run():
         pair.append(round(float(d), 3))
     rep["rim_slot_to_tab_offset_mm"] = pair
     rep["slot_sizes_mm"] = dict(
-        rim_slot=[2.5, p["lock_tab_width"] + 1],
+        rim_slot=[round(D["t"] + 1.0, 2), p["lock_tab_width"] + 1],
         rim_tab_with_ears=p["lock_tab_width"] + 2 * p["lock_tab_ear"],
         riser_slot=[round(p["riser_width_long"] * p["riser_tongue_width_ratio"] + 1, 1), p["riser_tongue_length"] + 2],
     )

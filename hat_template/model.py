@@ -21,8 +21,15 @@ HERE = Path(__file__).parent
 
 # ---------------------------------------------------------------- parameters
 def load_params(path=None):
-    with open(path or HERE / "params.json") as f:
+    """params.json, or the file named by $HAT_PARAMS. A file with "_base" overrides that base file."""
+    import os
+    path = Path(path or os.environ.get("HAT_PARAMS") or HERE / "params.json")
+    with open(path) as f:
         p = json.load(f)
+    if "_base" in p:
+        base = load_params(path.parent / p["_base"])
+        base.update({k: v for k, v in p.items() if not k.startswith("_")})
+        return base
     return {k: v for k, v in p.items() if not k.startswith("_")}
 
 
@@ -155,7 +162,9 @@ def build(p=None):
         panels[nm + "_ret"] = Panel(nm + "_ret", ret, nm + "_tab", h_ret, 180.0 - alpha, "riser", lab)
         panels[nm + "_tng"] = Panel(nm + "_tng", tng, nm + "_ret", h_tng, None, "riser_tongue", lab)
         # slot for tongue in deck: inward of the return foot (deck local: base at ly = -dd from hinge)
-        sl = X([(-tw - 0.5, -dd - 0.5), (tw + 0.5, -dd - 0.5), (tw + 0.5, -dd + e + 1.5), (-tw - 0.5, -dd + e + 1.5)])
+        t_ = p["board_thickness"]
+        s0, s1 = -dd - t_ / 2 - 0.5, -dd + e + t_ / 2 + 1.0       # room for the tongue thickness
+        sl = X([(-tw - 0.5, s0), (tw + 0.5, s0), (tw + 0.5, s1), (-tw - 0.5, s1)])
         deck_holes.append(sl)
         cuts["slots"].append(sl)
         riser_parts.append(Polygon(tab).union(Polygon(ret)).union(Polygon(tng)))
@@ -209,8 +218,9 @@ def build(p=None):
             fl = p["rim_flap_length"]
             for side, sx in (("a", -(E + t)), ("b", E + t)):
                 x0, x1 = (-xe, -xe + fl) if side == "a" else (xe - fl, xe)
-                sl = X([(sx - 1.25, ys - (tw_ + 1) / 2), (sx + 1.25, ys - (tw_ + 1) / 2),
-                        (sx + 1.25, ys + (tw_ + 1) / 2), (sx - 1.25, ys + (tw_ + 1) / 2)])
+                sh = (t + 1.0) / 2                       # slot width = board thickness + 1 mm
+                sl = X([(sx - sh, ys - (tw_ + 1) / 2), (sx + sh, ys - (tw_ + 1) / 2),
+                        (sx + sh, ys + (tw_ + 1) / 2), (sx - sh, ys + (tw_ + 1) / 2)])
                 cuts["slots"].append(sl)
                 rim = X([(x0, y3), (x1, y3), (x1, y3 + r), (x0, y3 + r)])
                 panels[nm + "_rim" + side] = Panel(nm + "_rim" + side, Polygon(rim, [sl]), nm + "_wall",

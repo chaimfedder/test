@@ -1,0 +1,12 @@
+{
+  "_base": "params.json",
+  "_note": "Prototype from single-wall corrugated (supermarket box), measured ~3.5 mm. Slots, lock tabs and fold spacing follow the thickness.",
+  "board_thickness": 3.5,
+  "lock_tab_height": 6.5,
+  "lock_tab_width": 12.0,
+  "lock_tab_ear": 1.0,
+  "riser_tongue_length": 10.0,
+  "leg_corner_gap": 4.5,
+  "short_wall_ear": 8.0,
+  "short_rim_depth": 24.0
+}
