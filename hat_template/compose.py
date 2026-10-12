@@ -43,6 +43,7 @@ def cm(v, nd=1):
 
 OUTER = PL["template_outer"]
 BAG = anim.BAG
+BAG_C = CHK["bag"]
 SHEET = CHK["flat"]["sheet_bbox_mm"]
 
 COL = dict(ink=(25, 25, 25), blue=(20, 70, 170), green=(10, 115, 45), red=(180, 40, 20), orange=(200, 90, 0),
@@ -412,15 +413,26 @@ def s11(tau, ctx):
     d = ImageDraw.Draw(im, "RGBA")
     header(d, "התבנית בתוך השקית", "חלק נפרד · חזית השקית שקופה לצורך ההסבר")
     cam = anim.CAM_BAG
-    if tau >= 3.8:
+    if 3.8 <= tau < 9.0:
         pt = P2(cam, (D["L"] / 2, -D["W"] / 2, D["Hf"] + BAG["floor"]))
         callout(d, pt, (pt[0] + 280, pt[1] + 200), f"תבנית {cm(OUTER[0])} × {cm(OUTER[1])} × {cm(D['Hf'])} ס״מ", COL["brown"], 30)
     if tau >= 9.0:
-        u = (0, BAG["inner_W"] / 2, BAG["floor"] + BAG["usable_H"])
-        callout(d, P2(cam, (-120, BAG["inner_W"] / 2, BAG["floor"] + BAG["usable_H"])), (330, 330),
-                f"גובה שימושי {cm(BAG['usable_H'], 0)} ס״מ", COL["orange"], 30)
-        callout(d, P2(cam, (-150, BAG["inner_W"] / 2, BAG["total_H"] - 15)), (330, 200), "אזור סגירה וידיות – מעל", COL["grey"], 28)
-        tbox(d, (W / 2, 940), f"חלל שקית מינימלי: {cm(BAG['inner_L'], 0)} × {cm(BAG['inner_W'], 0)} ס״מ · גובה שימושי {cm(BAG['usable_H'], 0)} ס״מ", 34)
+        f = BAG["floor"]
+        z_tip = f + BAG_C["hat_top"] - p["brim_thickness"] / 2
+        x_tip = BAG_C["hat_envelope_L"] / 2
+        a1, a2 = P2(cam, (x_tip, 0, z_tip)), P2(cam, (BAG["inner_L"] / 2, 0, z_tip))
+        arrow(d, a1, a2, COL["red"], w=4, head=12)
+        tbox(d, ((a1[0] + a2[0]) / 2 + 40, (a1[1] + a2[1]) / 2 - 40), f"{BAG_C['clear_hat_x'] / 10:.0f} ס״מ", 28, COL["red"])
+        z_side = f + HM["brim_lowest"] + p["brim_thickness"] / 2
+        b1, b2 = P2(cam, (0, -BAG_C["hat_envelope_W"] / 2, z_side)), P2(cam, (0, -BAG["inner_W"] / 2, z_side))
+        arrow(d, b1, b2, COL["red"], w=4, head=12)
+        tbox(d, (b2[0] - 70, b2[1] + 10), f"{BAG_C['clear_hat_y'] / 10:.0f} ס״מ", 28, COL["red"])
+        c1, c2 = P2(cam, (-x_tip, 0, f + BAG_C["hat_top"])), P2(cam, (-x_tip, 0, f + BAG["inner_H"]))
+        arrow(d, c1, c2, COL["red"], w=4, head=12)
+        tbox(d, (c2[0] - 80, (c1[1] + c2[1]) / 2), f"{BAG_C['clear_hat_top'] / 10:.0f} ס״מ", 28, COL["red"])
+        callout(d, P2(cam, (60, BAG["inner_W"] / 2 + 2, BAG["total_H"] + 60)), (330, 200), "ידיות – מעל גוף השקית", COL["grey"], 28)
+        tbox(d, (W / 2, 850), f"חלל פנימי: {cm(BAG['inner_L'])} × {cm(BAG['inner_W'])} × {cm(BAG['inner_H'])} ס״מ  (הכובע + 2 ס״מ)", 34)
+        tbox(d, (W / 2, 910), f"מבחוץ, עם עובי חומר {BAG['wall']:.0f} מ״מ (הנחה): {cm(BAG_C['outer_L'])} × {cm(BAG_C['outer_W'])} × {cm(BAG_C['outer_H'])} ס״מ", 26, COL["grey"], bold=False)
     return im, d
 
 
@@ -438,7 +450,7 @@ def s12(tau, ctx):
                  ("24 פעולות קיפול · בלי דבק · בלי כלים", 38, COL["ink"]),
                  (f"תבנית {cm(OUTER[0])} × {cm(OUTER[1])} × {cm(D['Hf'])} ס״מ", 38, COL["brown"]),
                  (f"משטח {cm(D['Hd'], 0)} · תמיכה {cm(D['Hs'], 0)} · מסגרת {cm(D['Hf'], 0)} ס״מ · קצה הכתר {HM['crown_tip_lowest'] / 10:.1f} ס״מ מעל התחתית", 32, COL["ink"]),
-                 (f"שקית: לפחות {cm(BAG['inner_L'], 0)} × {cm(BAG['inner_W'], 0)} ס״מ, גובה שימושי {cm(BAG['usable_H'], 0)} ס״מ", 34, COL["orange"]),
+                 (f"שקית – חלל פנימי {cm(BAG['inner_L'])} × {cm(BAG['inner_W'])} × {cm(BAG['inner_H'])} ס״מ (2 ס״מ סביב הכובע ומעליו)", 34, COL["orange"]),
                  ("אב טיפוס – חוזק ועמידות לבדיקה בדגם פיזי", 34, COL["red"])]
         y = 210
         for s, sz, c in lines:

@@ -21,6 +21,7 @@ C = json.load(open(OUT / "checks.json"))
 A = json.load(open(OUT / "anim_checks.json"))
 D, p = C["derived"], C["params"]
 H, PL = C["heights_mm"], C["plan_mm"]
+B = C["bag"]
 
 
 def img_page(pdf, path, title, note=None):
@@ -88,7 +89,9 @@ def report_page(pdf):
         (f"קצה הכתר: {H['crown_tip_lowest']:.1f} מ״מ מעל התחתית (יעד: לפחות 15) · שוליים מעל המשטח: {H['brim_lowest_minus_deck']:.1f} מ״מ · מסגרת מעל השוליים: {H['frame_top_minus_brim_highest']:.1f} מ״מ.", 13, 400),
         (f"מרווח שוליים–דפנות: {PL['brim_to_wall_x']:.1f} מ״מ לאורך, {PL['brim_to_wall_y']:.1f} מ״מ לרוחב.", 13, 400),
         (f"תבנית מורכבת: {PL['template_outer'][0] / 10:.1f} × {PL['template_outer'][1] / 10:.1f} × {D['Hf'] / 10:.1f} ס״מ · גיליון שטוח: {C['flat']['sheet_bbox_mm'][0] / 10:.1f} × {C['flat']['sheet_bbox_mm'][1] / 10:.1f} ס״מ.", 13, 700),
-        (f"שקית (נגזרת מהתבנית): חלל לפחות {C['bag_min_inner_mm'][0] / 10:.1f} × {C['bag_min_inner_mm'][1] / 10:.1f} ס״מ, גובה שימושי 15 ס״מ; בסרטון 36 × 33 × 15.", 13, 700),
+        (f"שקית – חלל פנימי {B['inner_L'] / 10:.1f} × {B['inner_W'] / 10:.1f} × {B['inner_H'] / 10:.1f} ס״מ = מעטפת הכובע היושב ({B['hat_envelope_L'] / 10:.1f} × {B['hat_envelope_W'] / 10:.1f}, נקודה גבוהה {B['hat_top'] / 10:.1f}) + 2 ס״מ לכל צד ומעל.", 13, 700),
+        (f"מרווחים שנמדדו: לאורך {B['clear_hat_x']:.1f} · לרוחב {B['clear_hat_y']:.1f} · מעל {B['clear_hat_top']:.1f} מ״מ. מבחוץ (דופן {B['wall']:.0f} מ״מ, תחתית {B['floor']:.0f} מ״מ – הנחה): {B['outer_L'] / 10:.1f} × {B['outer_W'] / 10:.1f} × {B['outer_H'] / 10:.1f} ס״מ, הידיות מעל.", 13, 400),
+        (f"התבנית בתוך החלל: מרווח {B['clear_insert_x']:.1f} מ״מ לאורך, {B['clear_insert_y']:.1f} מ״מ לרוחב, {B['clear_insert_top']:.1f} מ״מ מעל המסגרת.", 13, 400),
         (f"שטח החלק: {C['flat']['part_area_m2']:.3f} מ״ר · פחת מהחור (מוסר במפעל): {C['flat']['factory_waste_hole_m2']:.3f} מ״ר.", 13, 400),
         ("", 8, 400),
         ("נבדק במודל (גאומטריה בלבד):", 15, 700),
@@ -104,8 +107,8 @@ def report_page(pdf):
         ("• חוזק ויציבות בנשיאה ובטלטול · עייפות הקיפולים אחרי פתיחות חוזרות · אחיזת הלשוניות בחריצים בעובי האמיתי.", 13, 400),
         ("• לחץ על הכובע בנקודות המגע · מדידות הכובע האמיתי: רוחב כתר מרבי, פרופיל, עובי, וקימור השוליים.", 13, 400),
         ("", 8, 400),
-        ("הנחות שניתנות לשינוי בקובץ params.json:", 15, 700),
-        (f"עובי קרטון {p['board_thickness']} מ״מ (ניסיוני) · תוספת כתר {p['crown_ease_per_side']} מ״מ לצד · קימור שוליים: ירידה {p['brim_side_drop']} מ״מ בצדדים, עלייה {p['brim_front_rise']} מ״מ מלפנים ומאחור.", 13, 400),
+        ("הנחות שעדיין דורשות מדידה (params.json):", 15, 700),
+        (f"עובי קרטון {p['board_thickness']} מ״מ (ניסיוני) · תוספת כתר {p['crown_ease_per_side']} מ״מ לצד · קימור שוליים: ירידה {p['brim_side_drop']} מ״מ בצדדים, עלייה {p['brim_front_rise']} מ״מ מלפנים ומאחור (קובעת את גובה השקית) · עובי שוליים {p['brim_thickness']} מ״מ · עובי חומר השקית.", 13, 400),
     ]
     y = 0.96
     for s, sz, wt in lines:

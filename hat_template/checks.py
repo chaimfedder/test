@@ -244,9 +244,29 @@ def run():
         riser_slot=[round(p["riser_width_long"] * p["riser_tongue_width_ratio"] + 1, 1), p["riser_tongue_length"] + 2],
     )
 
-    # ---- 5. bag (derived from the template, not the other way round)
-    m = 3.0
-    rep["bag_min_inner_mm"] = [round(D["outer_L"] + 2 * m), round(D["outer_W"] + 2 * m), round(long_top + 8)]
+    # ---- 5. bag: inner cavity = outer envelope of the SEATED hat (incl. real brim curl) + clearance
+    #      sides: +bag_side_clearance each side; top: highest hat point + bag_top_clearance.
+    #      bag inner floor = bottom of the insert (z = 0). Material thickness only adds outside.
+    V = np.vstack([m.vertices for m in hat.values()])
+    hx, hy, hz = float(np.abs(V[:, 0]).max()), float(np.abs(V[:, 1]).max()), float(V[:, 2].max())
+    cs, ct = p["bag_side_clearance"], p["bag_top_clearance"]
+    bw, bf = p["bag_wall_thickness"], p["bag_floor_thickness"]
+    bag = dict(hat_envelope_L=2 * hx, hat_envelope_W=2 * hy, hat_top=hz,
+               inner_L=2 * hx + 2 * cs, inner_W=2 * hy + 2 * cs, inner_H=hz + ct)
+    bag.update(outer_L=bag["inner_L"] + 2 * bw, outer_W=bag["inner_W"] + 2 * bw, outer_H=bag["inner_H"] + bf,
+               wall=bw, floor=bf)
+    # measured clearances hat -> bag inner faces
+    bag["clear_hat_x"] = bag["inner_L"] / 2 - hx
+    bag["clear_hat_y"] = bag["inner_W"] / 2 - hy
+    bag["clear_hat_top"] = bag["inner_H"] - hz
+    # insert must fit inside the same cavity
+    TV = np.vstack([panel_mesh(panels[n], T[n], t, shrink=0.0, thk=1.0).vertices for n in panels])
+    tx, ty, tz = float(np.abs(TV[:, 0]).max()), float(np.abs(TV[:, 1]).max()), float(TV[:, 2].max())
+    bag.update(insert_L=2 * tx, insert_W=2 * ty, insert_H=tz,
+               clear_insert_x=bag["inner_L"] / 2 - tx, clear_insert_y=bag["inner_W"] / 2 - ty,
+               clear_insert_top=bag["inner_H"] - tz)
+    bag["insert_fits"] = min(bag["clear_insert_x"], bag["clear_insert_y"], bag["clear_insert_top"]) > 0
+    rep["bag"] = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in bag.items()}
 
     with open(OUT / "checks.json", "w") as f:
         json.dump(rep, f, ensure_ascii=False, indent=1, default=float)

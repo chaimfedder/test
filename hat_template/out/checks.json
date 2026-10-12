@@ -28,7 +28,11 @@
   "riser_tongue_length": 6.0,
   "riser_tongue_width_ratio": 0.5,
   "leg_corner_gap": 1.5,
-  "kerf_gap": 0.0
+  "kerf_gap": 0.0,
+  "bag_side_clearance": 20.0,
+  "bag_top_clearance": 20.0,
+  "bag_wall_thickness": 2.0,
+  "bag_floor_thickness": 3.0
  },
  "derived": {
   "t": 1.0,
@@ -156,9 +160,27 @@
    8.0
   ]
  },
- "bag_min_inner_mm": [
-  356,
-  325,
-  151
- ]
+ "bag": {
+  "hat_envelope_L": 328.08,
+  "hat_envelope_W": 288.08,
+  "hat_top": 134.84,
+  "inner_L": 368.08,
+  "inner_W": 328.08,
+  "inner_H": 154.84,
+  "outer_L": 372.08,
+  "outer_W": 332.08,
+  "outer_H": 157.84,
+  "wall": 2.0,
+  "floor": 3.0,
+  "clear_hat_x": 20.0,
+  "clear_hat_y": 20.0,
+  "clear_hat_top": 20.0,
+  "insert_L": 350.08,
+  "insert_W": 319.08,
+  "insert_H": 142.0,
+  "clear_insert_x": 9.0,
+  "clear_insert_y": 4.5,
+  "clear_insert_top": 12.84,
+  "insert_fits": true
+ }
 }

@@ -96,7 +96,7 @@ CAM_FRAME = dict(loc=(0.62, -0.95, 0.78), tgt=(0, 0, 0.06), lens=40)
 CAM_RISERS = dict(loc=(0.05, -0.43, 0.66), tgt=(0, 0.015, 0.095), lens=42)
 CAM_HAT = dict(loc=(0.55, -0.85, 0.70), tgt=(0, 0, 0.08), lens=40)
 CAM_CUT = dict(loc=(0.30, -0.95, 0.32), tgt=(0, 0, 0.07), lens=50)
-CAM_BAG = dict(loc=(0.70, -1.25, 0.95), tgt=(0, 0, 0.12), lens=40)
+CAM_BAG = dict(loc=(0.48, -0.86, 0.62), tgt=(0, 0, 0.10), lens=40)
 
 
 def cam_orbit(t, T):
@@ -210,7 +210,16 @@ def shot_cutaway(t):
     return state(hat=hat_pose(0), cam=CAM_CUT, hide=("S3_wall", "S3_leg", "S3_strip"))
 
 
-BAG = dict(inner_L=360.0, inner_W=330.0, usable_H=150.0, total_H=215.0, wall=2.0, floor=3.0)
+def _bag():
+    """Bag cavity from checks.json (hat envelope + 2 cm); never a preset size."""
+    import json
+    from pathlib import Path
+    b = json.load(open(Path(__file__).parent / "out" / "checks.json"))["bag"]
+    return dict(inner_L=b["inner_L"], inner_W=b["inner_W"], inner_H=b["inner_H"], wall=b["wall"], floor=b["floor"],
+                total_H=b["floor"] + b["inner_H"])
+
+
+BAG = _bag()
 BAG_LEN = 9.0
 
 

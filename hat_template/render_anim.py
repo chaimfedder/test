@@ -54,7 +54,7 @@ def build_bag(B):
     box("bag_right", Li / 2, Li / 2 + w, -Wi / 2, Wi / 2, 0, H, mat)
     # rope handles on the long sides
     rope = S.mat_simple("rope", (0.55, 0.45, 0.25), rough=0.7)
-    for side in (-1, 1):
+    for side in (1,):          # back handle only: the front wall is shown transparent
         y = side * (Wi / 2 + w + 2)
         pts = []
         for i in range(40):
@@ -71,9 +71,6 @@ def build_bag(B):
         bpy.context.scene.collection.objects.link(ob)
         ob.data.materials.append(rope)
         obs.append(ob)
-    # usable-height marker line (thin light band inside the back wall)
-    mark = S.mat_simple("mark", (0.9, 0.55, 0.1), rough=0.5, emission=(0.9, 0.55, 0.1))
-    box("bag_usable_mark", -Li / 2, Li / 2, Wi / 2 - 0.6, Wi / 2, f + B["usable_H"] - 0.6, f + B["usable_H"] + 0.6, mark)
     return obs
 
 

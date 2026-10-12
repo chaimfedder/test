@@ -96,7 +96,7 @@ def section_figure():
     vdim(ax, 60, ct, h["support_contact"], f"כתר {p['crown_height'] / 10:.1f} ס״מ", color="#0b3a8a")
     bl = h["brim_lowest"]
     vdim(ax, D["b_b"] + 2, h["deck_top"], bl, f"{bl - h['deck_top']:.0f}", color="#b03000")
-    ax.text(D["b_b"] - 3, h["deck_top"] - 22, "מרווח מתחת לשוליים", ha="right", fontsize=11, color="#b03000")
+    ax.text(D["b_b"] - 3, h["deck_top"] - 34, "מרווח מתחת לשוליים", ha="right", fontsize=11, color="#b03000")
     # labels
     ax.annotate("תמיכה א (מגע הכובע)", xy=(D["hy"] + 1, h["support_contact"]), xytext=(D["hy"] + 70, 172),
                 fontsize=12, ha="center", arrowprops=dict(arrowstyle="->", lw=1))
@@ -104,11 +104,22 @@ def section_figure():
     ax.annotate("דופן 1", xy=(W2 + 1, 120), xytext=(W2 + 55, 120), fontsize=12, va="center", arrowprops=dict(arrowstyle="->", lw=1))
     ax.annotate("לשונית נעילה בחריץ", xy=(D["hy"] + 17, 87), xytext=(D["hy"] + 60, 60), fontsize=11,
                 arrowprops=dict(arrowstyle="->", lw=1))
+    # bag cavity (from checks.json: hat envelope + clearance) -- dashed
+    bag = chk["bag"]
+    bi, bh = bag["inner_W"] / 2, bag["inner_H"]
+    ax.plot([-bi, -bi, bi, bi], [0, bh, bh, 0], color="#555", lw=1.6, ls=(0, (6, 4)))
+    ax.text(bi - 4, bh + 4, f"חלל השקית {bag['inner_W'] / 10:.1f} ס״מ רוחב · גובה פנימי {bh / 10:.1f}", ha="right", fontsize=11, color="#555")
+    ax.plot([-bi, bi], [bag["hat_top"]] * 2, color="#b03000", lw=0.9, ls=(0, (2, 3)))
+    ax.text(0, bag["hat_top"] + 2.5, f"הנקודה הגבוהה של הכובע ({bag['hat_top'] / 10:.1f} ס״מ, בשוליים מלפנים ומאחור)", ha="center", fontsize=10, color="#b03000")
+    vdim(ax, -bi + 12, bag["hat_top"], bh, f"{bag['clear_hat_top'] / 10:.0f} ס״מ", color="#b03000")
+    yb = HM_low = h["brim_lowest"] + 1
+    ax.annotate("", xy=(-D["b_b"], yb), xytext=(-bi, yb), arrowprops=dict(arrowstyle="<->", lw=1.1, color="#b03000", shrinkA=0, shrinkB=0))
+    ax.text(-(D["b_b"] + bi) / 2, yb - 9, f"{bag['clear_hat_y'] / 10:.0f} ס״מ", ha="center", fontsize=12, color="#b03000", weight=700)
     ax.text(0, 182, "חתך לרוחב התבנית (מבט מהצד) – תצוגת הסבר", ha="center", fontsize=17, weight=700)
     ax.text(0, 168, "כל המידות במ״מ ונמדדו מהמודל", ha="center", fontsize=11, color="#555")
     ax.set_aspect("equal")
     ax.set_xlim(-W2 - 175, W2 + 115)
-    ax.set_ylim(-28, 192)
+    ax.set_ylim(-28, 196)
     ax.axis("off")
     fig.tight_layout()
     fig.savefig(OUT / "section.png", facecolor=BG)

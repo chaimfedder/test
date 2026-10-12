@@ -29,5 +29,10 @@
   "riser_tongue_length": 6.0,
   "riser_tongue_width_ratio": 0.5,
   "leg_corner_gap": 1.5,
-  "kerf_gap": 0.0
+  "kerf_gap": 0.0,
+  "bag_side_clearance": 20.0,
+  "bag_top_clearance": 20.0,
+  "bag_wall_thickness": 2.0,
+  "bag_floor_thickness": 3.0,
+  "_assumptions": "To be measured: crown ease 2 mm/side, brim curl (side drop 20, front rise 12), brim thickness 2.5, board 1 mm, bag wall 2 mm / floor 3 mm"
 }
